@@ -2,6 +2,9 @@
  * BSD 3-Clause License. See top-level LICENSE file or
  * https://github.com/Kitware/trailblazer/blob/master/LICENSE for details. */
 
+#include "reader.h"
+#include "util.h"
+
 #include <valhalla/proto/options.pb.h>
 
 #include <valhalla/baldr/graphreader.h>
@@ -14,6 +17,8 @@
 
 #include <iostream>
 
+namespace tb = trailblazer;
+
 namespace baldr = valhalla::baldr;
 namespace loki = valhalla::loki;
 namespace sif = valhalla::sif;
@@ -24,51 +29,38 @@ namespace Arguments
   enum
   {
     ExecutableName,
+    OsmData,
     Config,
     StartLat,
     StartLon,
-    EndLat,
-    EndLon,
+    StopLat,
+    StopLon,
     ExpectedCount,
   };
 
-  char const* names[ExpectedCount] = {
+  char const* names[ExpectedCount - 1] = {
+    "osm",
     "config",
     "start-lat",
     "start-lon",
-    "end-lat",
-    "end-lon",
+    "stop-lat",
+    "stop-lon",
   };
 }
 
 // ----------------------------------------------------------------------------
-std::string toString(rapidjson::Document const& doc)
+struct Leg
 {
-  auto buffer = rapidjson::StringBuffer{};
-  auto writer = rapidjson::Writer<rapidjson::StringBuffer>{buffer};
-
-  doc.Accept(writer);
-  return buffer.GetString();
-}
+  id_t way;
+  unsigned heading;
+  double length;
+};
 
 // ----------------------------------------------------------------------------
-int main(int argc, char** argv)
+std::vector<Leg> route(
+  tb::location_t const& start, tb::location_t const& stop,
+  boost::property_tree::ptree const& config)
 {
-  if (argc < (Arguments::ExpectedCount))
-  {
-    std::cerr << "Usage: " << argv[0];
-    for (auto arg : Arguments::names)
-    {
-      std::cerr << ' ' << '<' << arg << '>';
-    }
-    std::cerr << std::endl;
-    return 1;
-  }
-
-  // Read the configuration
-  auto config = boost::property_tree::ptree{};
-  rapidjson::read_json(argv[Arguments::Config], config);
-
   // Get something we can use to fetch tiles
   baldr::GraphReader reader{config.get_child("mjolnir")};
 
@@ -78,19 +70,15 @@ int main(int argc, char** argv)
   auto& locations = *options.mutable_locations();
 
   auto* const startPoint = locations.Add();
-  startPoint->mutable_ll()->set_lat(
-    std::strtof(argv[Arguments::StartLat], nullptr));
-  startPoint->mutable_ll()->set_lng(
-    std::strtof(argv[Arguments::StartLon], nullptr));
+  startPoint->mutable_ll()->set_lat(static_cast<float>(start.y()));
+  startPoint->mutable_ll()->set_lng(static_cast<float>(start.x()));
   startPoint->set_type(valhalla::Location::kVia);
   startPoint->set_original_index(0);
 
-  auto* const endPoint = locations.Add();
-  endPoint->mutable_ll()->set_lat(
-    std::strtof(argv[Arguments::EndLat], nullptr));
-  endPoint->mutable_ll()->set_lng(
-    std::strtof(argv[Arguments::EndLon], nullptr));
-  endPoint->set_type(valhalla::Location::kVia);
+  auto* const stopPoint = locations.Add();
+  stopPoint->mutable_ll()->set_lat(static_cast<float>(stop.y()));
+  stopPoint->mutable_ll()->set_lng(static_cast<float>(stop.x()));
+  stopPoint->set_type(valhalla::Location::kVia);
   startPoint->set_original_index(1);
 
   options.set_action(valhalla::Options::route);
@@ -108,19 +96,19 @@ int main(int argc, char** argv)
     nullptr,
   };
 
-  // Correlate the start/end with actual nodes
+  // Correlate the start/stop with actual nodes
   auto lokiWorker = loki::loki_worker_t{config};
   lokiWorker.route(request);
 
   // Generate a trip path
   auto pathAlgorithm = thor::BidirectionalAStar{};
   auto const& paths =
-    pathAlgorithm.GetBestPath(*startPoint, *endPoint, reader, costing,
+    pathAlgorithm.GetBestPath(*startPoint, *stopPoint, reader, costing,
                               sif::TravelMode::kDrive, options);
   if (paths.empty())
   {
     std::cerr << "Failed to generate path" << std::endl;
-    return 2;
+    return {};
   }
 
   auto const& path = paths.front();
@@ -130,9 +118,12 @@ int main(int argc, char** argv)
   auto controller = thor::AttributesController{};
   thor::TripLegBuilder::Build(
     controller, reader, costing, path.begin(), path.end(),
-    *startPoint, *endPoint, {}, leg, {});
+    *startPoint, *stopPoint, {}, leg, {});
 
-  auto last = std::uint64_t{0};
+  // Convert to internal format
+  auto out = std::vector<Leg>{};
+  auto last = tb::id_t{-1};
+  auto distance = 0.0;
   for (auto const& node : leg.node())
   {
     if (!node.has_edge())
@@ -141,27 +132,76 @@ int main(int argc, char** argv)
     }
 
     auto const& edge = node.edge();
+    distance += edge.length() * 1e3; // km -> m
+
     if (edge.has_way_id())
     {
-      if (auto const i = edge.way_id())
+      if (auto const way = static_cast<id_t>(edge.way_id()))
       {
-        if (last != i)
+        if (last != way)
         {
-          std::cout << "way_id: " << edge.way_id();
-          if (edge.name_size())
-          {
-            std::cout << ' ' << '(';
-            for (auto const& name : edge.name())
-            {
-              std::cout << name.value();
-            }
-            std::cout << ')';
-          }
-          std::cout << std::endl;
-          last = i;
+          auto const heading = edge.begin_heading();
+          out.push_back(Leg{way, heading, distance});
+          last = way;
+          distance = 0.0;
         }
       }
     }
+  }
+
+  // Return trip parts
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
+{
+  if (argc < (Arguments::ExpectedCount))
+  {
+    std::cerr << "Usage: " << argv[0];
+    for (auto arg : Arguments::names)
+    {
+      std::cerr << ' ' << '<' << arg << '>';
+    }
+    std::cerr << std::endl;
+    return 1;
+  }
+
+  tb::init();
+
+  // Read the OSM data and construct a graph
+  tb::Reader graph{argv[Arguments::OsmData]};
+  if (graph)
+  {
+    graph.exec();
+  }
+  else
+  {
+    std::cerr << "Failed to read OSM data" << std::endl;
+    return 2;
+  }
+
+  // Read the Valhalla configuration
+  auto config = boost::property_tree::ptree{};
+  rapidjson::read_json(argv[Arguments::Config], config);
+
+  // Get start and stop points
+  auto const startLL = tb::location_t{
+    std::strtod(argv[Arguments::StartLon], nullptr),
+    std::strtod(argv[Arguments::StartLat], nullptr)};
+
+  auto const stopLL = tb::location_t{
+    std::strtod(argv[Arguments::StopLon], nullptr),
+    std::strtod(argv[Arguments::StopLat], nullptr)};
+
+  auto const trip = route(startLL, stopLL, config);
+
+  for (auto const& leg : trip)
+  {
+    std::cout << "way " << leg.way
+              << " (bearing " << leg.heading
+              << " for " << leg.length << " m)"
+              << std::endl;
   }
 
   return 0;

@@ -17,12 +17,15 @@ namespace trailblazer
 /// Data type of an OSM identifier (nodes, ways, etc.)
 using id_t = long long;
 
+/// Data type of a geodetic location
+using location_t = kwiver::vital::geo_point::geo_2d_point_t;
+
 // ----------------------------------------------------------------------------
 /// Simplified representation of an OSM node
 struct Node
 {
   id_t id;
-  kwiver::vital::geo_point::geo_2d_point_t location;
+  location_t location;
   std::vector<id_t> ways;
 };
 
