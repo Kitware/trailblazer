@@ -6,6 +6,8 @@
 
 #include <vital/types/geodesy.h>
 
+#include <limits>
+
 namespace kv = kwiver::vital;
 
 namespace trailblazer
@@ -29,6 +31,32 @@ Way const* Graph::way(id_t which) const
 {
   auto const& iter = m_ways.find(which);
   return (iter == m_ways.end() ? nullptr : std::addressof(iter->second));
+}
+
+// ----------------------------------------------------------------------------
+Node const* Graph::locate(id_t wi, location_t const& location) const
+{
+  Node const* result = nullptr;
+  auto best = std::numeric_limits<double>::infinity();
+
+  if (auto* const wp = this->way(wi))
+  {
+    for (auto const ni : wp->nodes)
+    {
+      if (auto* const np = this->node(ni))
+      {
+        auto const delta = location - np->location;
+        auto const d = delta.squaredNorm();
+        if (d < best)
+        {
+          result = np;
+          best = d;
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 // ----------------------------------------------------------------------------

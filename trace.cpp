@@ -5,6 +5,8 @@
 #include "reader.h"
 #include "util.h"
 
+#include <vital/types/geodesy.h>
+
 #include <valhalla/proto/options.pb.h>
 
 #include <valhalla/baldr/graphreader.h>
@@ -18,6 +20,8 @@
 #include <iostream>
 
 namespace tb = trailblazer;
+
+namespace kv = kwiver::vital;
 
 namespace baldr = valhalla::baldr;
 namespace loki = valhalla::loki;
@@ -107,7 +111,6 @@ std::vector<Leg> route(
                               sif::TravelMode::kDrive, options);
   if (paths.empty())
   {
-    std::cerr << "Failed to generate path" << std::endl;
     return {};
   }
 
@@ -194,8 +197,27 @@ int main(int argc, char** argv)
     std::strtod(argv[Arguments::StopLon], nullptr),
     std::strtod(argv[Arguments::StopLat], nullptr)};
 
+  // Get trip from Valhalla
   auto const trip = route(startLL, stopLL, config);
+  if (trip.empty())
+  {
+    std::cerr << "Failed to generate path" << std::endl;
+    return 2;
+  }
 
+  // Locate initial node
+  auto* const node = graph.locate(
+    trip.front().way,
+    kv::geo_conv(startLL, kv::SRID::lat_lon_WGS84, graph.crs()));
+  if (!node)
+  {
+    std::cerr << "Failed to locate starting node";
+    return 2;
+  }
+
+  std::cout << "Starting node: " << node->id << std::endl;
+
+  // Map legs to segments
   for (auto const& leg : trip)
   {
     std::cout << "way " << leg.way

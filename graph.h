@@ -26,6 +26,9 @@ public:
   Node const* node(id_t which) const;
   Way const* way(id_t which) const;
 
+  /// Return the node on \p way which is closest to \p location
+  Node const* locate(id_t way, location_t const& location) const;
+
 protected:
   void build();
   void convertFrom(int from);
