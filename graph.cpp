@@ -133,6 +133,76 @@ Heading Graph::locate(id_t wi, id_t ni, double bDeg)
 }
 
 // ----------------------------------------------------------------------------
+segmentation_t Graph::segment(id_t wi, bool splitLoops) const
+{
+  if (auto* const wp = this->way(wi))
+  {
+    auto const testLoop = [](Way const* way, size_t n0, size_t n1)
+    {
+      return ((n1 - n0) > 1 && way->nodes[n0] == way->nodes[n1]);
+    };
+
+    auto const count = wp->nodes.size();
+    if (count > 2)
+    {
+      // Get intersections along way (don't count the ends; they are always
+      // intersections, but don't split the way)
+      auto intersections = std::vector<size_t>{};
+      for (auto const i : kvr::iota(count - 2))
+      {
+        auto const ni = wp->nodes[i + 1];
+        if (auto const np = this->node(ni))
+        {
+          // A node used by the middle of a way has two edges of the way, but
+          // only records the way once; since the start and end are always
+          // intersections anyway, and interior node with more than one way
+          // must also be in intersection
+          if (np->ways.size() > 1)
+          {
+            intersections.push_back(i + 1);
+          }
+        }
+      }
+
+      if (!intersections.empty())
+      {
+        // Prepare result
+        auto result = segmentation_t{};
+        result.reserve(intersections.size() + 1);
+
+        // Generate segments from indices that are intersections
+        auto last = size_t{0};
+        for (auto const i : intersections)
+        {
+          if (splitLoops && testLoop(wp, last, i))
+          {
+            auto const mid = (last + i) / 2;
+            result.emplace_back(last, mid);
+            result.emplace_back(mid, i);
+          }
+          else
+          {
+            result.emplace_back(last, i);
+          }
+          last = i;
+        }
+        result.emplace_back(last, count - 1);
+
+        return result;
+      }
+    }
+
+    if (splitLoops && testLoop(wp, 0, count - 1))
+    {
+      auto const mid = count / 2;
+      return {{0, mid}, {mid, count - 1}};
+    }
+  }
+
+  return {};
+}
+
+// ----------------------------------------------------------------------------
 void Graph::build()
 {
   for (auto const& wi : m_ways)

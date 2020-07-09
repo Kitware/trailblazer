@@ -23,6 +23,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 
+#include <algorithm>
 #include <iostream>
 
 namespace tb = trailblazer;
@@ -293,6 +294,40 @@ int main(int argc, char** argv)
 
       // Add segment
       segments.push_back(std::move(s));
+    }
+  }
+
+  // Generate edges from ways
+  std::unordered_map<id_t, tb::segmentation_t> segmentations;
+  for (auto const& s : segments)
+  {
+    auto* const dir = (s.forward ? "" : "-");
+
+    // Get way segmentation and determine segment id, if relevant
+    auto i = segmentations.find(s.way);
+    if (i == segmentations.end())
+    {
+      i = segmentations.emplace(s.way, graph.segment(s.way, true)).first;
+    }
+
+    // Check against way segmentation
+    auto const& segmentation = i->second;
+    if (auto const sc = segmentation.size())
+    {
+      auto const l = std::min(s.indices.front(), s.indices.back());
+      auto const u = std::max(s.indices.front(), s.indices.back());
+      for (auto const si : kvr::iota(sc))
+      {
+        auto const& ss = segmentation[si];
+        if (l < ss.second && u > ss.first)
+        {
+          std::cout << dir << s.way << '#' << si << std::endl;
+        }
+      }
+    }
+    else
+    {
+      std::cout << dir << s.way << std::endl;
     }
   }
 

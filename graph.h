@@ -36,6 +36,19 @@ public:
   /// \param bearing The bearing in degrees to match (0 = North, 90 = East)
   Heading locate(id_t way, id_t node, double bearing);
 
+  /// Break a way into segments
+  ///
+  /// This method divides a way at intersections (nodes which have more than
+  /// three edges, or which are used by the same way more than once) and
+  /// returns the list of resulting segments according to the way indices which
+  /// comprise each segment.
+  ///
+  /// If \p splitLoops is \c true, segments which form a loop (i.e. start and
+  /// end at the same node) will be split at their midpoint into two segments.
+  ///
+  /// If the way has only one segment, an empty vector is returned.
+  segmentation_t segment(id_t way, bool splitLoops) const;
+
 protected:
   void build();
   void convertFrom(int from);

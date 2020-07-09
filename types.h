@@ -20,6 +20,11 @@ using id_t = long long;
 /// Data type of a geodetic location
 using location_t = kwiver::vital::geo_point::geo_2d_point_t;
 
+/// Segmentation of a way
+///
+/// \sa Graph::segment
+using segmentation_t = std::vector<std::pair<size_t, size_t>>;
+
 // ----------------------------------------------------------------------------
 /// Simplified representation of an OSM node
 struct Node
