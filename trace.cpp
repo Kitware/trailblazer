@@ -7,10 +7,14 @@
 
 #include <vital/types/geodesy.h>
 
+#include <vital/range/iota.h>
+
 #include <valhalla/proto/options.pb.h>
 
 #include <valhalla/baldr/graphreader.h>
 #include <valhalla/loki/worker.h>
+#include <valhalla/midgard/encoded.h>
+#include <valhalla/midgard/pointll.h>
 #include <valhalla/sif/costfactory.h>
 #include <valhalla/thor/bidirectional_astar.h>
 #include <valhalla/thor/triplegbuilder.h>
@@ -22,11 +26,13 @@
 namespace tb = trailblazer;
 
 namespace kv = kwiver::vital;
+namespace kvr = kwiver::vital::range;
 
-namespace baldr = valhalla::baldr;
-namespace loki = valhalla::loki;
-namespace sif = valhalla::sif;
-namespace thor = valhalla::thor;
+namespace vb = valhalla::baldr;
+namespace vl = valhalla::loki;
+namespace vm = valhalla::midgard;
+namespace vs = valhalla::sif;
+namespace vt = valhalla::thor;
 
 namespace Arguments
 {
@@ -57,16 +63,16 @@ struct Leg
 {
   id_t way;
   unsigned heading;
-  double length;
+  std::vector<tb::location_t> points;
 };
 
 // ----------------------------------------------------------------------------
 std::vector<Leg> route(
   tb::location_t const& start, tb::location_t const& stop,
-  boost::property_tree::ptree const& config)
+  boost::property_tree::ptree const& config, int crs)
 {
   // Get something we can use to fetch tiles
-  baldr::GraphReader reader{config.get_child("mjolnir")};
+  vb::GraphReader reader{config.get_child("mjolnir")};
 
   // Create the routing request
   auto request = valhalla::Api{};
@@ -87,13 +93,13 @@ std::vector<Leg> route(
 
   options.set_action(valhalla::Options::route);
   options.set_costing(valhalla::auto_);
-  sif::ParseAutoCostOptions({}, {}, options.add_costing_options());
+  vs::ParseAutoCostOptions({}, {}, options.add_costing_options());
   options.set_alternates(0);
 
   // Set up the costing function
-  sif::CostFactory<sif::DynamicCost> factory;
+  vs::CostFactory<vs::DynamicCost> factory;
   factory.RegisterStandardCostingModels();
-  std::shared_ptr<sif::DynamicCost> costing[] = {
+  std::shared_ptr<vs::DynamicCost> costing[] = {
     factory.Create(options),
     nullptr,
     nullptr,
@@ -101,14 +107,14 @@ std::vector<Leg> route(
   };
 
   // Correlate the start/stop with actual nodes
-  auto lokiWorker = loki::loki_worker_t{config};
+  auto lokiWorker = vl::loki_worker_t{config};
   lokiWorker.route(request);
 
   // Generate a trip path
-  auto pathAlgorithm = thor::BidirectionalAStar{};
+  auto pathAlgorithm = vt::BidirectionalAStar{};
   auto const& paths =
     pathAlgorithm.GetBestPath(*startPoint, *stopPoint, reader, costing,
-                              sif::TravelMode::kDrive, options);
+                              vs::TravelMode::kDrive, options);
   if (paths.empty())
   {
     return {};
@@ -118,15 +124,24 @@ std::vector<Leg> route(
   auto& route = *request.mutable_trip()->mutable_routes()->Add();
   auto& leg = *route.mutable_legs()->Add();
 
-  auto controller = thor::AttributesController{};
-  thor::TripLegBuilder::Build(
+  auto controller = vt::AttributesController{};
+  vt::TripLegBuilder::Build(
     controller, reader, costing, path.begin(), path.end(),
     *startPoint, *stopPoint, {}, leg, {});
 
+  // Extract the location points for the leg
+  auto const& llPoints = vm::decode<std::vector<vm::PointLL>>(leg.shape());
+  auto points = std::vector<tb::location_t>{};
+
+  points.reserve(llPoints.size());
+  for (auto const& p : llPoints)
+  {
+    auto const ll = tb::location_t{p.lng(), p.lat()};
+    points.push_back(kv::geo_conv(ll, kv::SRID::lat_lon_WGS84, crs));
+  }
+
   // Convert to internal format
   auto out = std::vector<Leg>{};
-  auto last = tb::id_t{-1};
-  auto distance = 0.0;
   for (auto const& node : leg.node())
   {
     if (!node.has_edge())
@@ -135,21 +150,18 @@ std::vector<Leg> route(
     }
 
     auto const& edge = node.edge();
-    distance += edge.length() * 1e3; // km -> m
+    auto const heading = edge.begin_heading();
+    auto const way = static_cast<id_t>(edge.way_id());
 
-    if (edge.has_way_id())
+    auto l = Leg{way, heading, {}};
+
+    auto const offset = edge.begin_shape_index();
+    for (auto const i : kvr::iota(edge.end_shape_index() + 1 - offset))
     {
-      if (auto const way = static_cast<id_t>(edge.way_id()))
-      {
-        if (last != way)
-        {
-          auto const heading = edge.begin_heading();
-          out.push_back(Leg{way, heading, distance});
-          last = way;
-          distance = 0.0;
-        }
-      }
+      l.points.push_back(points[i + offset]);
     }
+
+    out.push_back(std::move(l));
   }
 
   // Return trip parts
@@ -198,32 +210,26 @@ int main(int argc, char** argv)
     std::strtod(argv[Arguments::StopLat], nullptr)};
 
   // Get trip from Valhalla
-  auto const trip = route(startLL, stopLL, config);
+  auto const trip = route(startLL, stopLL, config, graph.crs());
   if (trip.empty())
   {
     std::cerr << "Failed to generate path" << std::endl;
     return 2;
   }
 
-  // Locate initial node
-  auto* const node = graph.locate(
-    trip.front().way,
-    kv::geo_conv(startLL, kv::SRID::lat_lon_WGS84, graph.crs()));
-  if (!node)
-  {
-    std::cerr << "Failed to locate starting node";
-    return 2;
-  }
-
-  std::cout << "Starting node: " << node->id << std::endl;
-
   // Map legs to segments
   for (auto const& leg : trip)
   {
-    std::cout << "way " << leg.way
-              << " (bearing " << leg.heading
-              << " for " << leg.length << " m)"
-              << std::endl;
+    std::cout << "Way " << leg.way << std::endl;
+    auto nodes = std::vector<tb::id_t>{};
+    for (auto const& p : leg.points)
+    {
+      if (auto* const node = graph.locate(leg.way, p))
+      {
+        std::cout << "  Node " << node->id << std::endl;
+        nodes.push_back(node->id);
+      }
+    }
   }
 
   return 0;
