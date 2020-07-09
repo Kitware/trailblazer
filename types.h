@@ -37,6 +37,20 @@ struct Way
   std::vector<id_t> nodes;
 };
 
+// ----------------------------------------------------------------------------
+/// Description of a heading
+struct Heading
+{
+  /// Identifier of the way being traversed
+  id_t way;
+
+  /// Index of the node at which the way is being traversed
+  size_t node;
+
+  /// True if the way is being traversed forwards (node indices increasing)
+  bool forward;
+};
+
 } // namespace trailblazer
 
 #endif

@@ -7,6 +7,8 @@
 
 #include <vital/types/geodesy.h>
 
+#include <vital/math_constants.h>
+
 #include <vital/range/iota.h>
 
 #include <valhalla/proto/options.pb.h>
@@ -62,8 +64,16 @@ namespace Arguments
 struct Leg
 {
   id_t way;
-  unsigned heading;
+  double bearing;
   std::vector<tb::location_t> points;
+};
+
+// ----------------------------------------------------------------------------
+struct Segment
+{
+  id_t way;
+  std::vector<size_t> indices;
+  bool forward;
 };
 
 // ----------------------------------------------------------------------------
@@ -150,15 +160,26 @@ std::vector<Leg> route(
     }
 
     auto const& edge = node.edge();
-    auto const heading = edge.begin_heading();
+    auto const bearing = static_cast<double>(edge.begin_heading());
     auto const way = static_cast<id_t>(edge.way_id());
 
-    auto l = Leg{way, heading, {}};
+    auto l = Leg{way, bearing, {}};
 
     auto const offset = edge.begin_shape_index();
     for (auto const i : kvr::iota(edge.end_shape_index() + 1 - offset))
     {
       l.points.push_back(points[i + offset]);
+    }
+
+    // Recompute bearing; Valhalla's seems to tend to be off, sometimes by a
+    // non-trivial amount (especially at the start)
+    if (l.points.size() > 1)
+    {
+      auto const& l0 = l.points[0];
+      auto const& l1 = l.points[1];
+      auto const d = (l1 - l0).normalized();
+      auto const c = std::acos(d.y()) / kv::deg_to_rad;
+      l.bearing = (d.x() > 0 ? c : 360.0 - c);
     }
 
     out.push_back(std::move(l));
@@ -217,18 +238,61 @@ int main(int argc, char** argv)
     return 2;
   }
 
+  // Determine segments
+  auto segments = std::vector<Segment>{};
+  segments.reserve(trip.size());
+
   // Map legs to segments
   for (auto const& leg : trip)
   {
-    std::cout << "Way " << leg.way << std::endl;
+    // Match leg shape to OSM nodes
     auto nodes = std::vector<tb::id_t>{};
     for (auto const& p : leg.points)
     {
       if (auto* const node = graph.locate(leg.way, p))
       {
-        std::cout << "  Node " << node->id << std::endl;
         nodes.push_back(node->id);
       }
+    }
+
+    // Determine way node indices and create segment
+    auto const nodeCount = nodes.size();
+    if (nodeCount > 1)
+    {
+      // Get end bearing (for certain pathological cases of self-intersecting
+      // ways with turn restrictions)
+      auto const& l0 = graph.node(nodes[nodeCount - 1])->location;
+      auto const& l1 = graph.node(nodes[nodeCount - 2])->location;
+      auto const d = (l1 - l0).normalized();
+      auto const c = std::acos(d.y()) / kv::deg_to_rad;
+      auto const finalBearing = (d.x() > 0 ? c : 360.0 - c);
+
+      // Determine start and stop way node indices
+      auto const& hStart = graph.locate(leg.way, nodes.front(), leg.bearing);
+      auto const& hStop = graph.locate(leg.way, nodes.back(), finalBearing);
+
+      // Create segment
+      auto s = Segment{leg.way, {}, hStart.forward};
+
+      // Build index list for segment
+      auto const offset = hStart.node;
+      if (hStart.forward)
+      {
+        for (auto const i : kvr::iota(hStop.node - offset + 1))
+        {
+          s.indices.push_back(offset + i);
+        }
+      }
+      else
+      {
+        for (auto const i : kvr::iota(offset + 1 - hStop.node))
+        {
+          s.indices.push_back(offset - i);
+        }
+      }
+
+      // Add segment
+      segments.push_back(std::move(s));
     }
   }
 

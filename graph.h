@@ -29,6 +29,13 @@ public:
   /// Return the node on \p way which is closest to \p location
   Node const* locate(id_t way, location_t const& location) const;
 
+  /// Determine a ::Heading for a way at a specific node
+  ///
+  /// \param way The way being traversed
+  /// \param node The node at which to make a determination
+  /// \param bearing The bearing in degrees to match (0 = North, 90 = East)
+  Heading locate(id_t way, id_t node, double bearing);
+
 protected:
   void build();
   void convertFrom(int from);

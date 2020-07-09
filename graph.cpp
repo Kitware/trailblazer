@@ -6,9 +6,16 @@
 
 #include <vital/types/geodesy.h>
 
+#include <vital/math_constants.h>
+
+#include <vital/range/iota.h>
+
 #include <limits>
 
+#include <cmath>
+
 namespace kv = kwiver::vital;
+namespace kvr = kwiver::vital::range;
 
 namespace trailblazer
 {
@@ -57,6 +64,72 @@ Node const* Graph::locate(id_t wi, location_t const& location) const
   }
 
   return result;
+}
+
+// ----------------------------------------------------------------------------
+Heading Graph::locate(id_t wi, id_t ni, double bDeg)
+{
+  if (auto* const wp = this->way(wi))
+  {
+    auto const bRad = bDeg * kv::deg_to_rad;
+    auto const vec = kv::vector_2d{std::sin(bRad), std::cos(bRad)};
+    auto const k = wp->nodes.size();
+
+    // Initial best heading
+    auto bestAngle = -1.0;
+    auto bestIndex = k;
+    auto bestDir = true;
+
+    // Helper to test a pair of nodes
+    auto test = [&](size_t i, size_t j)
+    {
+      if (auto* const n0 = this->node(wp->nodes[i]))
+      {
+        if (auto* const n1 = this->node(wp->nodes[j]))
+        {
+          // Get direction vector and angle-cosine with desired bearing
+          auto const& l0 = n0->location;
+          auto const& l1 = n1->location;
+          auto const v = (l1 - l0).normalized();
+          auto const q = v.dot(vec);
+
+          // Test against current best
+          if (q > bestAngle)
+          {
+            bestAngle = q;
+            bestIndex = i;
+            bestDir = (j > i);
+          }
+        }
+      }
+    };
+
+    // Loop over all nodes in the way
+    for (auto const i : kvr::iota(k))
+    {
+      // Only test at the requested node
+      if (wp->nodes[i] == ni)
+      {
+        // Test both directions (except at ends of the way)
+        if (i > 0)
+        {
+          test(i, i - 1);
+        }
+        if (i + 1 < k)
+        {
+          test(i, i + 1);
+        }
+      }
+    }
+
+    // Return result, if any
+    if (bestIndex < k)
+    {
+      return {wi, bestIndex, bestDir};
+    }
+  }
+
+  return {-1, 0, true};
 }
 
 // ----------------------------------------------------------------------------
