@@ -12,7 +12,8 @@ add_external_project_ex( valhalla
   CMAKE_CACHE_ARGS
       -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
       -Dprotobuf_DIR:PATH=${protobuf_DIR}
-      -DCURL_DIR:PATH=${CURL_DIR}
+      #-DCURL_DIR:PATH=${CURL_DIR}
+      -DENABLE_BENCHMARKS:BOOL=OFF
       -DENABLE_DATA_TOOLS:BOOL=OFF
       -DENABLE_HTTP:BOOL=OFF
       -DENABLE_NODE:BOOL=OFF
@@ -23,7 +24,7 @@ add_external_project_ex( valhalla
       -DENABLE_TOOLS:BOOL=OFF
   RELATIVE_INCLUDE_PATH ""
   DEPENDENCIES
-    CURL
+    #CURL
     protobuf
     fletch
   #VERBOSE

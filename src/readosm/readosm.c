@@ -50,9 +50,9 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 /* MSVC: avoiding to include at all config.h */
-#define VERSION	"1.1.0"
+//#define VERSION "1.1.0"
 #else
-#include "config.h"
+//#include "config.h"
 #endif
 
 #include "readosm.h"
@@ -190,5 +190,5 @@ READOSM_DECLARE const char *
 readosm_version (void)
 {
 /* returning the current ReadOSM version string */
-    return VERSION;
+    return "1.1.0";
 }

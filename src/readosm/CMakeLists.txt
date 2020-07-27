@@ -1,3 +1,8 @@
+if(WIN32)
+  set(expat_depend "expat::libexpat")
+else()
+  set(expat_depend "expat::expat")
+endif()
 
 add_library_ex(readosm
   H_FILES
@@ -10,7 +15,7 @@ add_library_ex(readosm
     protobuf.c
     readosm.c
   PRIVATE_DEPENDS
-    expat::libexpat
+    ${expat_depend}
     protobuf::libprotobuf
     ZLIB::ZLIB
 )

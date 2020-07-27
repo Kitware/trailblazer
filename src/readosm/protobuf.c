@@ -55,7 +55,7 @@
 #if defined(_WIN32) && !defined(__MINGW32__)
 /* MSVC: avoiding to include at all config.h */
 #else
-#include "config.h"
+//#include "config.h"
 #endif
 
 #include "readosm.h"

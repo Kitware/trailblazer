@@ -75,7 +75,7 @@ if(${PROJECT_NAME}_SUPERBUILD)
     mark_as_advanced(USE_SYSTEM_${extProj})
   endmacro()
   
-  define_dependency(CURL)
+  #define_dependency(CURL)
   define_dependency(expat)
   define_dependency(XercesC)
   define_dependency(fletch)
