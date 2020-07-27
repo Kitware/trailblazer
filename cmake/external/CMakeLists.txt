@@ -86,7 +86,6 @@ ExternalProject_Add( ${PROJECT_NAME}
   ${COMMON_CMAKE_EP_ARGS}
   CMAKE_ARGS
     -D${PROJECT_NAME}_SUPERBUILD:BOOL=OFF
-    #-DCURL_DIR:PATH=${CURL_DIR}
     -Dexpat_DIR:PATH=${expat_DIR}
     -Dfletch_DIR:PATH=${fletch_DIR}
     -Dkwiver_DIR:PATH=${kwiver_DIR}

@@ -74,8 +74,7 @@ if(${PROJECT_NAME}_SUPERBUILD)
     option(USE_SYSTEM_${extProj} "Exclude ${extProj} from superbuild and use an existing build." OFF)
     mark_as_advanced(USE_SYSTEM_${extProj})
   endmacro()
-  
-  #define_dependency(CURL)
+
   define_dependency(expat)
   define_dependency(XercesC)
   define_dependency(fletch)
@@ -83,7 +82,7 @@ if(${PROJECT_NAME}_SUPERBUILD)
   define_dependency(protobuf)
   define_dependency(valhalla)
   define_dependency(SUMO)
-  
+
   if(${PROJECT_NAME}_DEPENDENCIES)
     #-----------------------------------------------------------------------------
     # Solve project dependencies
@@ -147,7 +146,7 @@ add_subdirectory(src)
 if(NOT WIN32)
   # Create setup shell script to create an environment for running examples
   set(LIBRARY_PATH_VAR "LD_LIBRARY_PATH")
-  if( APPLE )
+  if(APPLE)
     set(LIBRARY_PATH_VAR "DYLD_FALLBACK_LIBRARY_PATH")
   endif()
 endif()
