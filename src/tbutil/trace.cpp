@@ -64,7 +64,7 @@ namespace Arguments
 // ----------------------------------------------------------------------------
 struct Leg
 {
-  id_t way;
+  tb::id_t way;
   double bearing;
   std::vector<tb::location_t> points;
 };
@@ -72,7 +72,7 @@ struct Leg
 // ----------------------------------------------------------------------------
 struct Segment
 {
-  id_t way;
+  tb::id_t way;
   std::vector<size_t> indices;
   bool forward;
 };
@@ -162,7 +162,7 @@ std::vector<Leg> route(
 
     auto const& edge = node.edge();
     auto const bearing = static_cast<double>(edge.begin_heading());
-    auto const way = static_cast<id_t>(edge.way_id());
+    auto const way = static_cast<tb::id_t>(edge.way_id());
 
     auto l = Leg{way, bearing, {}};
 
@@ -298,7 +298,7 @@ int main(int argc, char** argv)
   }
 
   // Generate edges from ways
-  std::unordered_map<id_t, tb::segmentation_t> segmentations;
+  std::unordered_map<tb::id_t, tb::segmentation_t> segmentations;
   for (auto const& s : segments)
   {
     auto* const dir = (s.forward ? "" : "-");
