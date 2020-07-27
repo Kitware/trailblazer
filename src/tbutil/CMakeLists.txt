@@ -1,11 +1,13 @@
 
 add_library_ex(tbutil
   H_FILES
+    csv.h
     graph.h
     reader.h
     types.h
     util.h
   CPP_FILES
+    csv.cpp
     graph.cpp
     reader.cpp
     util.cpp
