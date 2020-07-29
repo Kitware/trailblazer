@@ -21,11 +21,3 @@ tb_install_headers(
   )
 
 tb_install_library(tbutil)
-
-# Command-line utilities
-add_executable_ex(tbtrace trace.cpp)
-target_include_directories(tbtrace PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(tbtrace
-  tbutil
-  valhalla::valhalla
-)
