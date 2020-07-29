@@ -37,7 +37,7 @@ target_link_libraries(tbutil
   kwiver::vital
   PRIVATE
   kwiver::vital_vpm
-  ReadOSM::ReadOSM
+  ReadOSM::readosm
   )
 
 # Command-line utilities
