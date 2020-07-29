@@ -11,8 +11,8 @@ function(tb_add_library NAME)
   generate_export_header(${NAME})
   target_include_directories(${NAME}
     PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+      $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
       $<INSTALL_INTERFACE:${install_includedir}>
     )
 endfunction()

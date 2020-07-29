@@ -5,9 +5,9 @@
 #ifndef _TRAILBLAZER_GRAPH_H
 #define _TRAILBLAZER_GRAPH_H
 
-#include "types.h"
+#include <tbutil/types.h>
 
-#include "tbutil_export.h"
+#include <tbutil/tbutil_export.h>
 
 #include <unordered_map>
 #include <vector>
