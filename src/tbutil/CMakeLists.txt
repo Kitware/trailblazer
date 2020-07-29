@@ -1,23 +1,26 @@
+tb_add_library(tbutil
+  csv.cpp
+  graph.cpp
+  reader.cpp
+  util.cpp
+  )
 
-add_library_ex(tbutil
-  H_FILES
-    csv.h
-    graph.h
-    reader.h
-    types.h
-    util.h
-  CPP_FILES
-    csv.cpp
-    graph.cpp
-    reader.cpp
-    util.cpp
-  PUBLIC_DEPENDS
+target_link_libraries(tbutil
+  PUBLIC
     kwiver::vital
+  PRIVATE
     readosm
-  PRIVATE_DEPENDS
     kwiver::vital_vpm
-    protobuf::libprotobuf
 )
+
+tb_install_headers(
+  graph.h
+  reader.h
+  types.h
+  util.h
+  )
+
+tb_install_library(tbutil)
 
 # Command-line utilities
 add_executable_ex(tbtrace trace.cpp)
