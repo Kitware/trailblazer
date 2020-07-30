@@ -66,6 +66,7 @@ struct Leg
 {
   tb::id_t way;
   double bearing;
+  std::vector<tb::id_t> nodes;
   std::vector<tb::location_t> points;
 };
 
@@ -80,7 +81,7 @@ struct Segment
 // ----------------------------------------------------------------------------
 std::vector<Leg> route(
   tb::location_t const& start, tb::location_t const& stop,
-  boost::property_tree::ptree const& config, int crs)
+  boost::property_tree::ptree const& config, tb::Graph const& graph)
 {
   // Get something we can use to fetch tiles
   vb::GraphReader reader{config.get_child("mjolnir")};
@@ -143,6 +144,7 @@ std::vector<Leg> route(
   // Extract the location points for the leg
   auto const& llPoints = vm::decode<std::vector<vm::PointLL>>(leg.shape());
   auto points = std::vector<tb::location_t>{};
+  auto const crs = graph.crs();
 
   points.reserve(llPoints.size());
   for (auto const& p : llPoints)
@@ -164,12 +166,19 @@ std::vector<Leg> route(
     auto const bearing = static_cast<double>(edge.begin_heading());
     auto const way = static_cast<tb::id_t>(edge.way_id());
 
-    auto l = Leg{way, bearing, {}};
+    auto l = Leg{way, bearing, {}, {}};
 
     auto const offset = edge.begin_shape_index();
     for (auto const i : kvr::iota(edge.end_shape_index() + 1 - offset))
     {
-      l.points.push_back(points[i + offset]);
+      auto const& p = points[i + offset];
+      l.points.push_back(p);
+
+      // Match shape point to OSM node
+      if (auto* const node = graph.locate(way, p))
+      {
+        l.nodes.push_back(node->id);
+      }
     }
 
     // Recompute bearing; Valhalla's seems to tend to be off, sometimes by a
@@ -232,7 +241,7 @@ int main(int argc, char** argv)
     std::strtod(argv[Arguments::StopLat], nullptr)};
 
   // Get trip from Valhalla
-  auto const trip = route(startLL, stopLL, config, graph.crs());
+  auto const trip = route(startLL, stopLL, config, graph);
   if (trip.empty())
   {
     std::cerr << "Failed to generate path" << std::endl;
@@ -246,31 +255,32 @@ int main(int argc, char** argv)
   // Map legs to segments
   for (auto const& leg : trip)
   {
-    // Match leg shape to OSM nodes
-    auto nodes = std::vector<tb::id_t>{};
-    for (auto const& p : leg.points)
+    std::cout << "way " << leg.way << std::endl;
+    for (auto const n : leg.nodes)
     {
-      if (auto* const node = graph.locate(leg.way, p))
-      {
-        nodes.push_back(node->id);
-      }
+      std::cout << "  node " << n << std::endl;
     }
 
     // Determine way node indices and create segment
-    auto const nodeCount = nodes.size();
+    auto const nodeCount = leg.nodes.size();
     if (nodeCount > 1)
     {
       // Get end bearing (for certain pathological cases of self-intersecting
       // ways with turn restrictions)
-      auto const& l0 = graph.node(nodes[nodeCount - 1])->location;
-      auto const& l1 = graph.node(nodes[nodeCount - 2])->location;
+      auto const& l0 = graph.node(leg.nodes[nodeCount - 1])->location;
+      auto const& l1 = graph.node(leg.nodes[nodeCount - 2])->location;
       auto const d = (l1 - l0).normalized();
       auto const c = std::acos(d.y()) / kv::deg_to_rad;
       auto const finalBearing = (d.x() > 0 ? c : 360.0 - c);
 
       // Determine start and stop way node indices
-      auto const& hStart = graph.locate(leg.way, nodes.front(), leg.bearing);
-      auto const& hStop = graph.locate(leg.way, nodes.back(), finalBearing);
+      auto const& hStart =
+        graph.locate(leg.way, leg.nodes.front(), leg.bearing);
+      auto const& hStop =
+        graph.locate(leg.way, leg.nodes.back(), finalBearing);
+
+      std::cout << "  bearing " << leg.bearing
+                << " to " << finalBearing << std::endl;
 
       // Create segment
       auto s = Segment{leg.way, {}, hStart.forward};
@@ -296,6 +306,8 @@ int main(int argc, char** argv)
       segments.push_back(std::move(s));
     }
   }
+
+  std::cout << std::endl;
 
   // Generate edges from ways
   std::unordered_map<tb::id_t, tb::segmentation_t> segmentations;
