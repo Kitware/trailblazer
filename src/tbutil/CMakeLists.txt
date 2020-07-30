@@ -3,16 +3,19 @@ tb_add_library(tbutil
     csv.h
     graph.h
     reader.h
+    route.h
     types.h
     util.h
   SOURCES
     csv.cpp
     graph.cpp
     reader.cpp
+    route.cpp
     util.cpp
   PUBLIC_LINK_LIBRARIES
     kwiver::vital
   PRIVATE_LINK_LIBRARIES
+    valhalla::valhalla
     ReadOSM::readosm
     kwiver::vital_vpm
     protobuf::libprotobuf

@@ -54,6 +54,23 @@ struct Heading
   bool forward;
 };
 
+// ----------------------------------------------------------------------------
+/// Description of a routing leg
+struct Leg
+{
+  /// Identifier of the way being traversed
+  id_t way;
+
+  /// Initial bearing (0-360; 0 = North, 90 = East)
+  double bearing;
+
+  /// List of OSM nodes along this leg
+  std::vector<id_t> nodes;
+
+  /// List of locations along this leg
+  std::vector<location_t> points;
+};
+
 } // namespace trailblazer
 
 #endif
