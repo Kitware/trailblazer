@@ -15,8 +15,6 @@
 namespace trailblazer
 {
 
-using id_t = long long;
-
 // ----------------------------------------------------------------------------
 class TBUTIL_EXPORT Graph
 {
