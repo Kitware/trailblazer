@@ -4,6 +4,7 @@ tb_add_library(tbutil
     graph.h
     reader.h
     route.h
+    segmentation.h
     types.h
     util.h
   SOURCES
@@ -11,6 +12,7 @@ tb_add_library(tbutil
     graph.cpp
     reader.cpp
     route.cpp
+    segmentation.cpp
     util.cpp
   PUBLIC_LINK_LIBRARIES
     kwiver::vital

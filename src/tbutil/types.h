@@ -71,6 +71,21 @@ struct Leg
   std::vector<location_t> points;
 };
 
+// ----------------------------------------------------------------------------
+/// Description of a route edge
+struct Edge
+{
+  /// Identifier of the way being traversed
+  id_t way;
+
+  /// Index of the way segment being traversed
+  /// (negative if there is only one segment)
+  int segment;
+
+  /// True if the way is being traversed forwards (node indices increasing)
+  bool forward;
+};
+
 } // namespace trailblazer
 
 #endif

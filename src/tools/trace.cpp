@@ -4,17 +4,13 @@
 
 #include <tbutil/reader.h>
 #include <tbutil/route.h>
+#include <tbutil/segmentation.h>
 #include <tbutil/util.h>
-
-#include <vital/range/iota.h>
 
 #include <algorithm>
 #include <iostream>
 
 namespace tb = trailblazer;
-
-namespace kv = kwiver::vital;
-namespace kvr = kwiver::vital::range;
 
 namespace Arguments
 {
@@ -41,12 +37,21 @@ namespace Arguments
 }
 
 // ----------------------------------------------------------------------------
-struct Segment
+template <typename T>
+void append(std::vector<T>& out, std::vector<T>&& in)
 {
-  tb::id_t way;
-  std::vector<size_t> indices;
-  bool forward;
-};
+  if (out.empty())
+  {
+    out = std::move(in);
+  }
+  else
+  {
+    out.insert(
+      out.end(),
+      std::make_move_iterator(in.begin()),
+      std::make_move_iterator(in.end()));
+  }
+}
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -96,11 +101,9 @@ int main(int argc, char** argv)
     return 2;
   }
 
-  // Determine segments
-  auto segments = std::vector<Segment>{};
-  segments.reserve(trip.size());
-
-  // Map legs to segments
+  // Map legs to edges
+  auto segmentation = tb::Segmentation{&graph};
+  auto edges = std::vector<tb::Edge>{};
   for (auto const& leg : trip)
   {
     std::cout << "way " << leg.way << std::endl;
@@ -109,84 +112,19 @@ int main(int argc, char** argv)
       std::cout << "  node " << n << std::endl;
     }
 
-    // Determine way node indices and create segment
-    auto const nodeCount = leg.nodes.size();
-    if (nodeCount > 1)
-    {
-      // Get end bearing (for certain pathological cases of self-intersecting
-      // ways with turn restrictions)
-      auto const& l0 = graph.node(leg.nodes[nodeCount - 1])->location;
-      auto const& l1 = graph.node(leg.nodes[nodeCount - 2])->location;
-      auto const finalBearing = tb::computeBearing(l0, l1);
-
-      // Determine start and stop way node indices
-      auto const& hStart =
-        graph.locate(leg.way, leg.nodes.front(), leg.bearing);
-      auto const& hStop =
-        graph.locate(leg.way, leg.nodes.back(), finalBearing);
-
-      std::cout << "  bearing " << leg.bearing
-                << " to " << finalBearing << std::endl;
-
-      // Create segment
-      auto s = Segment{leg.way, {}, hStart.forward};
-
-      // Build index list for segment
-      auto const offset = hStart.node;
-      if (hStart.forward)
-      {
-        for (auto const i : kvr::iota(hStop.node - offset + 1))
-        {
-          s.indices.push_back(offset + i);
-        }
-      }
-      else
-      {
-        for (auto const i : kvr::iota(offset + 1 - hStop.node))
-        {
-          s.indices.push_back(offset - i);
-        }
-      }
-
-      // Add segment
-      segments.push_back(std::move(s));
-    }
+    append(edges, segmentation.edges(leg));
   }
 
   std::cout << std::endl;
 
-  // Generate edges from ways
-  std::unordered_map<tb::id_t, tb::segmentation_t> segmentations;
-  for (auto const& s : segments)
+  for (auto const& e : edges)
   {
-    auto* const dir = (s.forward ? "" : "-");
-
-    // Get way segmentation and determine segment id, if relevant
-    auto i = segmentations.find(s.way);
-    if (i == segmentations.end())
+    std::cout << (e.forward ? "" : "-") << e.way;
+    if (e.segment >= 0)
     {
-      i = segmentations.emplace(s.way, graph.segment(s.way, true)).first;
+      std::cout << '#' << e.segment;
     }
-
-    // Check against way segmentation
-    auto const& segmentation = i->second;
-    if (auto const sc = segmentation.size())
-    {
-      auto const l = std::min(s.indices.front(), s.indices.back());
-      auto const u = std::max(s.indices.front(), s.indices.back());
-      for (auto const si : kvr::iota(sc))
-      {
-        auto const& ss = segmentation[si];
-        if (l < ss.second && u > ss.first)
-        {
-          std::cout << dir << s.way << '#' << si << std::endl;
-        }
-      }
-    }
-    else
-    {
-      std::cout << dir << s.way << std::endl;
-    }
+    std::cout << std::endl;
   }
 
   return 0;
