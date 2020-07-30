@@ -29,16 +29,6 @@ class Graph;
 routing_config_t TBUTIL_EXPORT readConfig(char const* path);
 
 // ----------------------------------------------------------------------------
-/// Calculate bearing from \p origin to \p target.
-///
-/// This function computes the bearing (in degrees, 0-360) from \p origin to
-/// \p target, with 0 = North, 90 = East, etc. The inputs must be in UTM
-/// coordinates.
-///
-/// \sa trailblazer::Leg, trailblazer::Graph::locate
-double TBUTIL_EXPORT computeBearing(location_t origin, location_t target);
-
-// ----------------------------------------------------------------------------
 /// Calculate a route between two waypoints
 ///
 /// This function calculates a route between two waypoints, using Valhalla.

@@ -6,8 +6,26 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 
+#include <vital/math_constants.h>
+
+#include <cmath>
+
+namespace kv = kwiver::vital;
+
+namespace trailblazer
+{
+
 // ----------------------------------------------------------------------------
-void trailblazer::init()
+void init()
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 }
+// ----------------------------------------------------------------------------
+double computeBearing(location_t origin, location_t target)
+{
+  auto const d = (target - origin).normalized();
+  auto const c = std::acos(d.y()) / kv::deg_to_rad;
+  return (d.x() > 0 ? c : 360.0 - c);
+}
+
+} // namespace trailblazer

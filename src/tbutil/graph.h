@@ -32,7 +32,7 @@ public:
   /// \param way The way being traversed
   /// \param node The node at which to make a determination
   /// \param bearing The bearing in degrees to match (0 = North, 90 = East)
-  Heading locate(id_t way, id_t node, double bearing);
+  Heading locate(id_t way, id_t node, double bearing) const;
 
   /// Break a way into segments
   ///

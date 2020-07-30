@@ -67,7 +67,7 @@ Node const* Graph::locate(id_t wi, location_t const& location) const
 }
 
 // ----------------------------------------------------------------------------
-Heading Graph::locate(id_t wi, id_t ni, double bDeg)
+Heading Graph::locate(id_t wi, id_t ni, double bDeg) const
 {
   if (auto* const wp = this->way(wi))
   {

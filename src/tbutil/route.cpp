@@ -5,10 +5,9 @@
 #include "route.h"
 
 #include <tbutil/graph.h>
+#include <tbutil/util.h>
 
 #include <vital/types/geodesy.h>
-
-#include <vital/math_constants.h>
 
 #include <vital/range/iota.h>
 
@@ -21,8 +20,6 @@
 #include <valhalla/sif/costfactory.h>
 #include <valhalla/thor/bidirectional_astar.h>
 #include <valhalla/thor/triplegbuilder.h>
-
-#include <cmath>
 
 namespace tb = trailblazer;
 
@@ -44,14 +41,6 @@ routing_config_t readConfig(char const* path)
   auto config = boost::property_tree::ptree{};
   rapidjson::read_json(path, config);
   return config;
-}
-
-// ----------------------------------------------------------------------------
-double computeBearing(location_t origin, location_t target)
-{
-  auto const d = (target - origin).normalized();
-  auto const c = std::acos(d.y()) / kv::deg_to_rad;
-  return (d.x() > 0 ? c : 360.0 - c);
 }
 
 // ----------------------------------------------------------------------------
