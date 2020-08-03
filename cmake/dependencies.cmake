@@ -1,6 +1,12 @@
-# ReadOSM (built internally for now; requires expat, protobuf, zlib)
-find_package(expat REQUIRED NO_DEFAULT_PATH)
-find_package(ZLIB REQUIRED)
+# ReadOSM
+if(DEFINED ReadOSM_DIR)
+  find_package(ReadOSM REQUIRED)
+else()
+  find_package(ReadOSM CONFIG QUIET)
+  if(NOT ReadOSM_FOUND)
+    find_package(ReadOSM REQUIRED)
+  endif()
+endif()
 
 # KWIVER (requires Eigen3)
 find_package(Eigen3 REQUIRED)

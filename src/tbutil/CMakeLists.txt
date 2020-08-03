@@ -9,7 +9,7 @@ target_link_libraries(tbutil
   PUBLIC
     kwiver::vital
   PRIVATE
-    readosm
+    ReadOSM::readosm
     kwiver::vital_vpm
 )
 
