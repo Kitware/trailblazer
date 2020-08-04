@@ -11,6 +11,8 @@
 
 #include <boost/property_tree/ptree.hpp>
 
+#include <memory>
+
 namespace trailblazer
 {
 
@@ -29,23 +31,40 @@ class Graph;
 routing_config_t TBUTIL_EXPORT readConfig(char const* path);
 
 // ----------------------------------------------------------------------------
-/// Calculate a route between two waypoints
-///
-/// This function calculates a route between two waypoints, using Valhalla.
-/// The route is returned as a list of trip legs with locations converted into
-/// the CRS used by the specified \p graph.
-///
-/// \param start Starting waypoint for the route to be computed.
-/// \param stop Stopping waypoint for the route to be computed.
-/// \param config Valhalla configuration to use for computing the route.
-/// \param graph
-///   OSM graph to use to rectify the routing information returned by Valhalla
-///   into OSM nodes.
-///
-/// \sa trailblazer::Leg
-std::vector<Leg> TBUTIL_EXPORT route(
-  location_t const& start, location_t const& stop,
-  routing_config_t const& config, Graph const& graph);
+/// Utility class used to calculate routes
+class TBUTIL_EXPORT RoutingEngine
+{
+public:
+  /// Constructor.
+  ///
+  /// \param config Valhalla configuration to use for computing routes.
+  RoutingEngine(routing_config_t const& config);
+
+  RoutingEngine(RoutingEngine&&);
+  ~RoutingEngine();
+
+  /// Calculate a route between two waypoints
+  ///
+  /// This function calculates a route between two waypoints, using Valhalla.
+  /// The route is returned as a list of trip legs with locations converted
+  /// into the CRS used by the specified \p graph.
+  ///
+  /// \param start Starting waypoint for the route to be computed.
+  /// \param stop Stopping waypoint for the route to be computed.
+  /// \param graph
+  ///   OSM graph to use to rectify the routing information returned by
+  ///   Valhalla into OSM nodes.
+  ///
+  /// \sa trailblazer::Leg
+  std::vector<Leg> route(
+    location_t const& start, location_t const& stop, Graph const& graph) const;
+
+private:
+  RoutingEngine(RoutingEngine const&) = delete;
+
+  class Private;
+  std::unique_ptr<Private> m_p;
+};
 
 } // namespace trailblazer
 

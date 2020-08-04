@@ -81,8 +81,9 @@ int main(int argc, char** argv)
     return 2;
   }
 
-  // Read the Valhalla configuration
+  // Read the Valhalla configuration and construct a routing engine
   auto config = tb::readConfig(argv[Arguments::Config]);
+  auto engine = tb::RoutingEngine{config};
 
   // Get start and stop points
   auto const startLL = tb::location_t{
@@ -94,7 +95,7 @@ int main(int argc, char** argv)
     std::strtod(argv[Arguments::StopLat], nullptr)};
 
   // Get trip from Valhalla
-  auto const trip = route(startLL, stopLL, config, graph);
+  auto const trip = engine.route(startLL, stopLL, graph);
   if (trip.empty())
   {
     std::cerr << "Failed to generate path" << std::endl;

@@ -44,13 +44,50 @@ routing_config_t readConfig(char const* path)
 }
 
 // ----------------------------------------------------------------------------
-std::vector<Leg> route(
-  tb::location_t const& start, tb::location_t const& stop,
-  boost::property_tree::ptree const& config, tb::Graph const& graph)
+class RoutingEngine::Private
 {
-  // Get something we can use to fetch tiles
-  vb::GraphReader reader{config.get_child("mjolnir")};
+public:
+  Private(routing_config_t const& config)
+    : reader{config.get_child("mjolnir")},
+      worker{config}
+  {
+    // Set up the costing function
+    valhalla::Options options;
+    options.set_costing(valhalla::auto_);
+    vs::ParseAutoCostOptions({}, {}, options.add_costing_options());
+    vs::CostFactory<vs::DynamicCost> factory;
+    factory.RegisterStandardCostingModels();
+    costing[costMode] = factory.Create(options);
+  }
 
+  vb::GraphReader reader;
+  vl::loki_worker_t worker;
+  std::shared_ptr<vs::DynamicCost> costing[4];
+
+  static constexpr auto costMode = static_cast<size_t>(vs::TravelMode::kDrive);
+};
+
+// ----------------------------------------------------------------------------
+RoutingEngine::RoutingEngine(routing_config_t const& config)
+  : m_p{new Private{config}}
+{
+}
+
+// ----------------------------------------------------------------------------
+RoutingEngine::RoutingEngine(RoutingEngine&& other)
+  : m_p{std::move(other.m_p)}
+{
+}
+
+// ----------------------------------------------------------------------------
+RoutingEngine::~RoutingEngine()
+{
+}
+
+// ----------------------------------------------------------------------------
+std::vector<Leg> RoutingEngine::route(
+  location_t const& start, location_t const& stop, Graph const& graph) const
+{
   // Create the routing request
   auto request = valhalla::Api{};
   auto& options = *request.mutable_options();
@@ -73,24 +110,14 @@ std::vector<Leg> route(
   vs::ParseAutoCostOptions({}, {}, options.add_costing_options());
   options.set_alternates(0);
 
-  // Set up the costing function
-  vs::CostFactory<vs::DynamicCost> factory;
-  factory.RegisterStandardCostingModels();
-  std::shared_ptr<vs::DynamicCost> costing[] = {
-    factory.Create(options),
-    nullptr,
-    nullptr,
-    nullptr,
-  };
-
   // Correlate the start/stop with actual nodes
-  auto lokiWorker = vl::loki_worker_t{config};
-  lokiWorker.route(request);
+  m_p->worker.route(request);
 
   // Generate a trip path
   auto pathAlgorithm = vt::BidirectionalAStar{};
   auto const& paths =
-    pathAlgorithm.GetBestPath(*startPoint, *stopPoint, reader, costing,
+    pathAlgorithm.GetBestPath(*startPoint, *stopPoint,
+                              m_p->reader, m_p->costing,
                               vs::TravelMode::kDrive, options);
   if (paths.empty())
   {
@@ -103,7 +130,7 @@ std::vector<Leg> route(
 
   auto controller = vt::AttributesController{};
   vt::TripLegBuilder::Build(
-    controller, reader, costing, path.begin(), path.end(),
+    controller, m_p->reader, m_p->costing, path.begin(), path.end(),
     *startPoint, *stopPoint, {}, leg, {});
 
   // Extract the location points for the leg
