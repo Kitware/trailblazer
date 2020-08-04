@@ -14,12 +14,15 @@
 #include <valhalla/proto/options.pb.h>
 
 #include <valhalla/baldr/graphreader.h>
+#include <valhalla/loki/search.h>
 #include <valhalla/loki/worker.h>
 #include <valhalla/midgard/encoded.h>
 #include <valhalla/midgard/pointll.h>
 #include <valhalla/sif/costfactory.h>
 #include <valhalla/thor/bidirectional_astar.h>
 #include <valhalla/thor/triplegbuilder.h>
+
+#include <limits>
 
 namespace tb = trailblazer;
 
@@ -82,6 +85,34 @@ RoutingEngine::RoutingEngine(RoutingEngine&& other)
 // ----------------------------------------------------------------------------
 RoutingEngine::~RoutingEngine()
 {
+}
+
+// ----------------------------------------------------------------------------
+location_t RoutingEngine::locate(location_t const& in) const
+{
+  auto locations = std::vector<vb::Location>{{{in.x(), in.y()}}};
+  auto const& result = vl::Search(locations, m_p->reader,
+                                  m_p->costing[m_p->costMode]);
+
+  auto const invalid = std::numeric_limits<double>::quiet_NaN();
+  auto p = location_t{invalid, invalid};
+  auto best = std::numeric_limits<double>::infinity();
+
+  for (auto const& match : result)
+  {
+    for (auto const& edge : match.second.edges)
+    {
+      auto const& c = location_t{edge.projected.lng(), edge.projected.lat()};
+      auto const dist = (in - c).squaredNorm();
+      if (dist < best)
+      {
+        p = c;
+        best = dist;
+      }
+    }
+  }
+
+  return p;
 }
 
 // ----------------------------------------------------------------------------

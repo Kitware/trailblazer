@@ -43,6 +43,13 @@ public:
   RoutingEngine(RoutingEngine&&);
   ~RoutingEngine();
 
+  /// Locate a point in the available routing data
+  ///
+  /// This function attempts to locate the specified point in the available
+  /// routing data. This can be used to validate waypoints before using them to
+  /// compute routes.
+  location_t locate(location_t const& in) const;
+
   /// Calculate a route between two waypoints
   ///
   /// This function calculates a route between two waypoints, using Valhalla.
