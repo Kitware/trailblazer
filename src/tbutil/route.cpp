@@ -137,6 +137,15 @@ std::vector<Leg> route(
     for (auto const i : kvr::iota(edge.end_shape_index() + 1 - offset))
     {
       auto const& p = points[i + offset];
+
+      // Ignore duplicate points
+      constexpr auto epsilon = 1e-4;
+      if (!l.points.empty() && (l.points.back() - p).squaredNorm() < epsilon)
+      {
+        continue;
+      }
+
+      // Add point to leg
       l.points.push_back(p);
 
       // Match shape point to OSM node
