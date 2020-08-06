@@ -9,6 +9,8 @@
 
 #include <tbutil/tbutil_export.h>
 
+#include <string>
+
 namespace trailblazer
 {
 
@@ -31,6 +33,20 @@ void TBUTIL_EXPORT init();
 ///
 /// \sa trailblazer::Leg, trailblazer::Graph::locate
 double TBUTIL_EXPORT computeBearing(location_t origin, location_t target);
+
+// ----------------------------------------------------------------------------
+/// Parse an ISO UTC time string (similar to strptime).
+///
+/// This function parses an ISO UTC time string, which must be in the form
+/// \c "1970-1-1T0:00:00.000Z" (fractional seconds are optional and may
+/// consist of any number of digits). Leading zeros for day, month or hour are
+/// optional, but more than two digits is not accepted. The year may have any
+/// number of digits, but an input like '99-1-1' may be interpreted as 99 AD,
+/// not 1999 AD.
+///
+/// \return
+///   Seconds since the UNIX epoch, or NaN if the string cannot be parsed.
+double TBUTIL_EXPORT parseTime(std::string const& in);
 
 } // namespace trailblazer
 
