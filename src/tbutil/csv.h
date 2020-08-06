@@ -5,19 +5,48 @@
 #ifndef _TRAILBLAZER_CSV_H
 #define _TRAILBLAZER_CSV_H
 
-#include <tbutil/types.h>
-
 #include <tbutil/tbutil_export.h>
 
-#include <unordered_map>
-#include <vector>
+#include <vital/optional.h>
+
+#include <memory>
+#include <string>
 
 namespace trailblazer
 {
-  using CSV = std::vector<std::pair<std::string, std::vector<float>>>;
 
-  TBUTIL_EXPORT bool ReadCSV(std::string const& filename, CSV& data);
-  TBUTIL_EXPORT bool WriteCSV(std::string const& filename, CSV const& data);
+// ----------------------------------------------------------------------------
+/// Utility class to read a CSV file
+class TBUTIL_EXPORT CsvStream
+{
+public:
+  /// Constructor.
+  ///
+  /// \param config Path to CSV file to read.
+  CsvStream(std::string const& path);
+
+  CsvStream(CsvStream&&);
+  ~CsvStream();
+
+  bool nextRecord();
+
+  template <typename T>
+  kwiver::vital::optional<T> nextValue(unsigned skip = 0);
+
+  std::string record() const;
+
+private:
+  CsvStream(CsvStream const&) = delete;
+
+  class Private;
+  std::unique_ptr<Private> m_p;
+};
+
+template <>
+kwiver::vital::optional<std::string> CsvStream::nextValue(unsigned skip);
+
+template <>
+kwiver::vital::optional<double> CsvStream::nextValue(unsigned skip);
 
 } // namespace trailblazer
 
