@@ -1,10 +1,6 @@
-add_executable(tbtrace trace.cpp)
-
+tb_add_executable(tbtrace trace.cpp)
+# TODO Support keywords like add_library_ex
 target_link_libraries(tbtrace
   tbutil
   valhalla::valhalla
-  )
-
-install(TARGETS tbtrace
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT Utilities
   )

@@ -1,23 +1,19 @@
 tb_add_library(tbutil
-  csv.cpp
-  graph.cpp
-  reader.cpp
-  util.cpp
-  )
-
-target_link_libraries(tbutil
-  PUBLIC
+  PUBLIC_HEADERS
+    csv.h
+    graph.h
+    reader.h
+    types.h
+    util.h
+  SOURCES
+    csv.cpp
+    graph.cpp
+    reader.cpp
+    util.cpp
+  PUBLIC_LINK_LIBRARIES
     kwiver::vital
-  PRIVATE
+  PRIVATE_LINK_LIBRARIES
     ReadOSM::readosm
     kwiver::vital_vpm
+    protobuf::libprotobuf
 )
-
-tb_install_headers(
-  graph.h
-  reader.h
-  types.h
-  util.h
-  )
-
-tb_install_library(tbutil)
