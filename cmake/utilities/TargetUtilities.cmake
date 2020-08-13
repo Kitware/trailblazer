@@ -7,7 +7,7 @@ function(tb_source_group NAME)
     get_filename_component(path ${file} ABSOLUTE)
     list(APPEND _sources "${path}")
   endforeach()
-  source_group(${NAME} FILES ${_sources})
+  source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${_sources})
 endfunction()
 
 # -----------------------------------------------------------------------------
@@ -102,7 +102,7 @@ function(tb_add_library NAME)
 
   # Add sources to IDE source group
   set_target_properties(${NAME} PROPERTIES FOLDER ${PROJECT_NAME})
-  tb_source_group(${NAME} ${_SOURCES} ${_PUBLIC_HEADERS} ${_PRIVATE_HEADERS})
+  tb_source_group(${_SOURCES} ${_PUBLIC_HEADERS} ${_PRIVATE_HEADERS})
 endfunction()
 
 # -----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ function(tb_add_executable NAME)
     FOLDER ${PROJECT_NAME}
     )
 
-  tb_source_group(${NAME} ${ARGN})
+  tb_source_group(${ARGN})
 
   # Configure running executable out of MSVC
   if(MSVC AND NOT ${PROJECT_NAME}_RUNTIME_PREFIX STREQUAL "")
