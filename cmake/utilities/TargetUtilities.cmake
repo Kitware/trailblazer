@@ -11,6 +11,39 @@ function(tb_source_group NAME)
 endfunction()
 
 # -----------------------------------------------------------------------------
+function(tb_copy_runtime TARGET)
+  if(NOT ${PROJECT_NAME}_RUNTIME_PREFIX STREQUAL "")
+    get_target_property(_type ${TARGET} TYPE)
+    if(_type STREQUAL "STATIC_LIBRARY")
+      add_custom_command(
+        TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE:${TARGET}>
+          ${${PROJECT_NAME}_RUNTIME_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+    elseif(_type STREQUAL "SHARED_LIBRARY" OR _type STREQUAL "MODULE_LIBRARY")
+      add_custom_command(
+        TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE:${TARGET}>
+          ${${PROJECT_NAME}_RUNTIME_PREFIX}/${CMAKE_INSTALL_BINDIR})
+      if(WIN32 AND _type STREQUAL "SHARED_LIBRARY")
+        add_custom_command(
+          TARGET ${TARGET} POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_LINKER_FILE:${TARGET}>
+            ${${PROJECT_NAME}_RUNTIME_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+      endif()
+    elseif(_type STREQUAL "EXECUTABLE")
+      add_custom_command(
+        TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE:${TARGET}>
+          ${${PROJECT_NAME}_RUNTIME_PREFIX}/${CMAKE_INSTALL_BINDIR})
+    endif()
+  endif()
+endfunction()
+
+# -----------------------------------------------------------------------------
 function(tb_add_library NAME)
   set(_multival_arguments
     SOURCES
@@ -30,6 +63,7 @@ function(tb_add_library NAME)
   # Build library
   add_library(${NAME} ${_SOURCES})
   generate_export_header(${NAME})
+  tb_copy_runtime(${NAME})
 
   # Set interface include directories
   target_include_directories(${NAME}
@@ -74,6 +108,7 @@ endfunction()
 # -----------------------------------------------------------------------------
 function(tb_add_executable NAME)
   add_executable(${NAME} ${ARGN})
+  tb_copy_runtime(${NAME})
 
   target_include_directories(${NAME}
     PRIVATE ${${PROJECT_NAME}_INCLUDE_FOLDERS}
@@ -86,9 +121,10 @@ function(tb_add_executable NAME)
   tb_source_group(${NAME} ${ARGN})
 
   # Configure running executable out of MSVC
-  if(MSVC)
-    set_property(TARGET ${NAME} PROPERTY
-      VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin"
+  if(MSVC AND NOT ${PROJECT_NAME}_RUNTIME_PREFIX STREQUAL "")
+    set_property(TARGET ${NAME}
+      PROPERTY VS_DEBUGGER_WORKING_DIRECTORY
+      "${${PROJECT_NAME}_RUNTIME_PREFIX}/${CMAKE_INSTALL_BINDIR}"
       )
   endif()
 endfunction()

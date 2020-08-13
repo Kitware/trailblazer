@@ -26,6 +26,9 @@ else()
   message(STATUS "Using preset install directory ${CMAKE_INSTALL_PREFIX}")
 endif()
 
+set(${PROJECT_NAME}_RUNTIME_PREFIX "" CACHE STRING
+  "If set, build artifacts will be copied to this prefix")
+
 # Default build type
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to 'Release' as none was specified.")
