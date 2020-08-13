@@ -88,7 +88,7 @@ ExternalProject_Add( ${PROJECT_NAME}
     -D${PROJECT_NAME}_SUPERBUILD:BOOL=OFF
     -Dexpat_DIR:PATH=${expat_DIR}
     -Dfletch_DIR:PATH=${fletch_DIR}
-    -Dkwiver_DIR:PATH=${kwiver_DIR}
+    -DKWIVER_DIR:PATH=${KWIVER_DIR}
     -Dprotobuf_DIR:PATH=${protobuf_DIR}
     -Dvalhalla_DIR:PATH=${valhalla_DIR}
   #INSTALL_COMMAND ${SKIP_STEP_COMMAND}

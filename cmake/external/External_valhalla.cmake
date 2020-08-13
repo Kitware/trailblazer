@@ -10,7 +10,6 @@ add_external_project_ex( valhalla
   GIT_REPOSITORY https://github.com/aaron-bray/valhalla.git
   GIT_TAG export-targets
   CMAKE_CACHE_ARGS
-      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
       -Dprotobuf_DIR:PATH=${protobuf_DIR}
       -DENABLE_BENCHMARKS:BOOL=OFF
       -DENABLE_DATA_TOOLS:BOOL=OFF

@@ -1,3 +1,13 @@
+enable_language(C)
+enable_language(CXX)
+
+include(${CMAKE_CURRENT_LIST_DIR}/config.cmake)
+
+list(PREPEND CMAKE_MODULE_PATH
+  ${CMAKE_CURRENT_LIST_DIR}/external
+  ${CMAKE_CURRENT_LIST_DIR}/utilities
+  )
+
 function(define_dependency NAME)
   string(TOUPPER "${NAME}" NAME_UC)
   option(USE_SYSTEM_${NAME_UC}
@@ -18,5 +28,5 @@ define_dependency(KWIVER)
 define_dependency(protobuf)
 define_dependency(ReadOSM)
 define_dependency(SUMO)
-define_dependency(Valhalla)
+define_dependency(valhalla)
 define_dependency(XercesC)
