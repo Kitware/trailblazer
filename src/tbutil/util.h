@@ -5,7 +5,7 @@
 #ifndef _TRAILBLAZER_UTIL_H
 #define _TRAILBLAZER_UTIL_H
 
-#include "tbutil_export.h"
+#include <tbutil/tbutil_export.h>
 
 namespace trailblazer
 {

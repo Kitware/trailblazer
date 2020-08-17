@@ -2,8 +2,8 @@
  * BSD 3-Clause License. See top-level LICENSE file or
  * https://github.com/Kitware/trailblazer/blob/master/LICENSE for details. */
 
-#include "reader.h"
-#include "util.h"
+#include <tbutil/reader.h>
+#include <tbutil/util.h>
 
 #include <vital/types/geodesy.h>
 

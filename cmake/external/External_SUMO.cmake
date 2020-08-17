@@ -7,8 +7,8 @@ add_external_project_ex( SUMO
   URL "https://github.com/eclipse/sumo/archive/v1_6_0.zip"
   URL_HASH MD5=b4631a9cfab09fdfc5747cb4c12cc884
   CMAKE_CACHE_ARGS
-      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
       -DEigen3_DIR:PATH=${Eigen3_DIR}
+      -DXercesC_DIR:PATH=${XercesC_DIR}
       -DPROJ_INCLUDE_DIR:PATH=${PROJ_INCLUDE_DIR}
       -DPROJ_LIBRARY:PATH=${PROJ_LIBRARY}
       -DENABLE_JAVA_BINDINGS:BOOL=OFF

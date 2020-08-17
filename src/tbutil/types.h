@@ -5,8 +5,6 @@
 #ifndef _TRAILBLAZER_TYPES_H
 #define _TRAILBLAZER_TYPES_H
 
-#include "types.h"
-
 #include <vital/types/geo_point.h>
 
 #include <vector>

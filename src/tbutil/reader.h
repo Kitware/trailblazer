@@ -5,7 +5,7 @@
 #ifndef _TRAILBLAZER_READER_H
 #define _TRAILBLAZER_READER_H
 
-#include "graph.h"
+#include <tbutil/graph.h>
 
 namespace trailblazer
 {

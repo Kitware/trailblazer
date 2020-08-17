@@ -1,28 +1,19 @@
-
-add_library_ex(tbutil
-  H_FILES
+tb_add_library(tbutil
+  PUBLIC_HEADERS
     csv.h
     graph.h
     reader.h
     types.h
     util.h
-  CPP_FILES
+  SOURCES
     csv.cpp
     graph.cpp
     reader.cpp
     util.cpp
-  PUBLIC_DEPENDS
+  PUBLIC_LINK_LIBRARIES
     kwiver::vital
-    readosm
-  PRIVATE_DEPENDS
+  PRIVATE_LINK_LIBRARIES
+    ReadOSM::readosm
     kwiver::vital_vpm
     protobuf::libprotobuf
-)
-
-# Command-line utilities
-add_executable_ex(tbtrace trace.cpp)
-target_include_directories(tbtrace PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(tbtrace
-  tbutil
-  valhalla::valhalla
 )

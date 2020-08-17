@@ -7,7 +7,7 @@ add_external_project_ex( XercesC
   URL "https://github.com/apache/xerces-c/archive/v3.2.3.zip"
   URL_HASH MD5=7e2e0baace31b8e369cf2fb040306262
   CMAKE_CACHE_ARGS
-      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
+
   RELATIVE_INCLUDE_PATH ""
   DEPENDENCIES ""
   #VERBOSE

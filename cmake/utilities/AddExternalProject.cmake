@@ -77,7 +77,7 @@ macro(add_external_project_ex extProj)
   #-----------------------------------------------------------------------------
   # If needs to download and build
   #-----------------------------------------------------------------------------
-  if(NOT DEFINED ${extProj}_DIR AND NOT ${USE_SYSTEM_${extProj}})
+  if(NOT DEFINED ${extProj}_DIR AND NOT USE_SYSTEM_${extProj})
     #-----------------------------------------------------------------------------
     # Ensure all generator info is passed to external library build
     #-----------------------------------------------------------------------------
@@ -91,7 +91,7 @@ macro(add_external_project_ex extProj)
 
     #-----------------------------------------------------------------------------
     # Add project
-    #-----------------------------------------------------------------------------    
+    #-----------------------------------------------------------------------------
     ExternalProject_add( ${extProj}
       PREFIX ${${extProj}_PREFIX}
       SOURCE_DIR ${${extProj}_SOURCE_DIR} # from above or parsed argument
@@ -103,7 +103,7 @@ macro(add_external_project_ex extProj)
       ${${extProj}_UNPARSED_ARGUMENTS}    # from unparsed arguments of this macro
       DEPENDS ${${extProj}_DEPENDENCIES}  # from parsed argument
       )
-    
+
     #-----------------------------------------------------------------------------
     # Add the target to ExternalDeps folder
     #-----------------------------------------------------------------------------

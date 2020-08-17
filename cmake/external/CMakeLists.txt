@@ -74,6 +74,11 @@ ExternalProject_Include_Dependencies( ${PROJECT_NAME}
   SUPERBUILD_VAR ${PROJECT_NAME}_SUPERBUILD
   )
 
+if(${PROJECT_NAME}_RUNTIME_PREFIX STREQUAL "")
+  set(_runtime_prefix "${CMAKE_INSTALL_PREFIX}")
+else()
+  set(_runtime_prefix "${${PROJECT_NAME}_RUNTIME_PREFIX}")
+endif()
 
 #-----------------------------------------------------------------------------
 # Inner build of the main project
@@ -87,10 +92,12 @@ ExternalProject_Add( ${PROJECT_NAME}
   CMAKE_ARGS
     -D${PROJECT_NAME}_SUPERBUILD:BOOL=OFF
     -Dexpat_DIR:PATH=${expat_DIR}
+    -DEigen3_DIR:PATH=${Eigen3_DIR}
     -Dfletch_DIR:PATH=${fletch_DIR}
-    -Dkwiver_DIR:PATH=${kwiver_DIR}
+    -DKWIVER_DIR:PATH=${KWIVER_DIR}
     -Dprotobuf_DIR:PATH=${protobuf_DIR}
     -Dvalhalla_DIR:PATH=${valhalla_DIR}
+    -D${PROJECT_NAME}_RUNTIME_PREFIX:PATH=${_runtime_prefix}
   #INSTALL_COMMAND ${SKIP_STEP_COMMAND}
   DEPENDS ${${PROJECT_NAME}_DEPENDENCIES}
 )
