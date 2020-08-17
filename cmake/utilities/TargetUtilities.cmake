@@ -1,7 +1,7 @@
 include(CMakeParseArguments)
 
 # -----------------------------------------------------------------------------
-function(tb_source_group NAME)
+function(tb_source_group)
   set(_sources "")
   foreach(file IN LISTS ARGN)
     get_filename_component(path ${file} ABSOLUTE)
@@ -61,7 +61,7 @@ function(tb_add_library NAME)
     )
 
   # Build library
-  add_library(${NAME} ${_SOURCES})
+  add_library(${NAME} ${_SOURCES} ${_PUBLIC_HEADERS} ${_PRIVATE_HEADERS})
   generate_export_header(${NAME})
   tb_copy_runtime(${NAME})
 

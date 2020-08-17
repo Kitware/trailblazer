@@ -25,13 +25,4 @@ if (NOT USE_SYSTEM_fletch)
   message(STATUS "fletch_DIR : ${fletch_DIR}")
   # Here is where our fletch build libraries are
   set(Eigen3_DIR ${CMAKE_INSTALL_PREFIX}/share/eigen3/cmake)
-  # SUMO FindPROJ is not great...
-  find_path(PROJ_INCLUDE_DIR
-    NAMES proj.h proj_api.h
-    PATHS "${CMAKE_INSTALL_PREFIX}/include"
-    )
-  find_library(PROJ_LIBRARY
-    NAMES proj_i proj proj_6_1
-    PATHS "${CMAKE_INSTALL_PREFIX}/lib/"
-    )
 endif()

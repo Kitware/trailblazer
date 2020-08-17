@@ -92,6 +92,7 @@ ExternalProject_Add( ${PROJECT_NAME}
   CMAKE_ARGS
     -D${PROJECT_NAME}_SUPERBUILD:BOOL=OFF
     -Dexpat_DIR:PATH=${expat_DIR}
+    -DEigen3_DIR:PATH=${Eigen3_DIR}
     -Dfletch_DIR:PATH=${fletch_DIR}
     -DKWIVER_DIR:PATH=${KWIVER_DIR}
     -Dprotobuf_DIR:PATH=${protobuf_DIR}

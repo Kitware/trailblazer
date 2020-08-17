@@ -1,6 +1,6 @@
 # ReadOSM
 if(DEFINED ReadOSM_DIR)
-  find_package(ReadOSM REQUIRED)
+  find_package(ReadOSM CONFIG REQUIRED)
 else()
   find_package(ReadOSM CONFIG QUIET)
   if(NOT ReadOSM_FOUND)
