@@ -50,8 +50,6 @@ double parseTime(std::string const& in)
     time.tm_hour = std::stoi(m[4]);
     time.tm_min = std::stoi(m[5]);
     time.tm_sec = std::stoi(m[6]);
-    time.tm_gmtoff = 0;
-    time.tm_isdst = 0;
 
     auto const& fpart = m[7];
     auto const frac = (fpart.matched ? std::stod("0" + fpart.str()) : 0.0);
