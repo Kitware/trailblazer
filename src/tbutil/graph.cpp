@@ -161,6 +161,13 @@ segmentation_t Graph::segment(id_t wi, bool splitLoops) const
           {
             intersections.push_back(i + 1);
           }
+          // Additionally, we need to split ways at traffic control devices,
+          // because these affect flow and so need to be treated as separate
+          // edges
+          else if (np->controlled)
+          {
+            intersections.push_back(i + 1);
+          }
         }
       }
 

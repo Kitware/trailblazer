@@ -30,6 +30,7 @@ struct Node
   id_t id;
   location_t location;
   std::vector<id_t> ways;
+  bool controlled;
 };
 
 // ----------------------------------------------------------------------------

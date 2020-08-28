@@ -47,7 +47,22 @@ void Reader::exec()
       auto const raw = kv::vector_2d{lon, lat};
       auto const zone = kv::utm_ups_zone(raw);
 
-      self->m_nodes.emplace(node->id, Node{node->id, raw, {}});
+      auto controlled = false;
+      for (auto const t : kvr::iota(node->tag_count))
+      {
+        auto const tag = node->tags[t];
+        if (strcmp(tag.key, "highway") == 0 ||
+            strcmp(tag.key, "crossing") == 0)
+        {
+          if (strcmp(tag.value, "traffic_signals") == 0)
+          {
+            controlled = true;
+            break;
+          }
+        }
+      }
+
+      self->m_nodes.emplace(node->id, Node{node->id, raw, {}, controlled});
 
       auto const zi = zone.number * (zone.north ? +1 : -1);
       ++self->m_crs_use[zi];
