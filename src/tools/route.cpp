@@ -77,6 +77,22 @@ bool isValid(tb::location_t const& in)
 }
 
 // ----------------------------------------------------------------------------
+bool compareTripStart(std::vector<Trip> const& a, std::vector<Trip> const& b)
+{
+  if (a.empty())
+  {
+    return !b.empty();
+  }
+
+  if (b.empty())
+  {
+    return false;
+  }
+
+  return a.front().start < b.front().start;
+}
+
+// ----------------------------------------------------------------------------
 std::vector<Trip> buildTrips(Mover const& mover)
 {
   auto trips = std::vector<Trip>{};
@@ -279,6 +295,9 @@ int main(int argc, char** argv)
     }
   }
   std::cout << "Generated " << trips.size() << " trips\n";
+
+  // Sort trips by start time (needed to make SUMO happy)
+  std::sort(trips.begin(), trips.end(), compareTripStart);
 
   // Write XML header
   auto output = std::ofstream{argv[Arguments::OutputPath]};
