@@ -89,6 +89,11 @@ std::vector<Edge> Segmentation::edges(Leg const& leg)
     out.push_back(Edge{way, -1, hStart.forward});
   }
 
+  if (!hStart.forward)
+  {
+    std::reverse(out.begin(), out.end());
+  }
+
   return out;
 }
 
