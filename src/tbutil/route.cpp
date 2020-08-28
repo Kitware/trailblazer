@@ -63,6 +63,24 @@ public:
     costing[costMode] = factory.Create(options);
   }
 
+  std::vector<std::vector<vt::PathInfo>>
+  getPaths(valhalla::Location& startPoint,
+           valhalla::Location& stopPoint,
+           valhalla::Options const& options)
+  {
+    auto pathAlgorithm = vt::BidirectionalAStar{};
+    try
+    {
+      return pathAlgorithm.GetBestPath(
+        startPoint, stopPoint, reader, costing,
+        vs::TravelMode::kDrive, options);
+    }
+    catch (...)
+    {
+      return {};
+    }
+  }
+
   vb::GraphReader reader;
   vl::loki_worker_t worker;
   std::shared_ptr<vs::DynamicCost> costing[4];
@@ -145,11 +163,7 @@ std::vector<Leg> RoutingEngine::route(
   m_p->worker.route(request);
 
   // Generate a trip path
-  auto pathAlgorithm = vt::BidirectionalAStar{};
-  auto const& paths =
-    pathAlgorithm.GetBestPath(*startPoint, *stopPoint,
-                              m_p->reader, m_p->costing,
-                              vs::TravelMode::kDrive, options);
+  auto const& paths = m_p->getPaths(*startPoint, *stopPoint, options);
   if (paths.empty())
   {
     return {};
