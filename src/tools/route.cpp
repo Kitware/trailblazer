@@ -141,7 +141,22 @@ std::vector<Trip> buildTrips(Mover const& mover)
         if (d < shortestDistance)
         {
           shortestDistance = d;
-          shortestIndex = i;
+          if (i == 0)
+          {
+            shortestIndex = i + 1;
+          }
+          else if (i + 2 == t.waypoints.size())
+          {
+            shortestIndex = i;
+          }
+          else
+          {
+            auto const& wa = t.waypoints[i - 1];
+            auto const& wb = t.waypoints[i + 2];
+            auto const da = (w1 - wa).squaredNorm();
+            auto const db = (wb - w0).squaredNorm();
+            shortestIndex = (da > db ? i + 1 : i);
+          }
         }
       }
 
