@@ -81,7 +81,7 @@ Heading Graph::locate(id_t wi, id_t ni, double bDeg) const
     auto bestDir = true;
 
     // Helper to test a pair of nodes
-    auto test = [&](size_t i, size_t j)
+    auto test = [&](size_t i, size_t j, bool bidirectional)
     {
       if (auto* const n0 = this->node(wp->nodes[i]))
       {
@@ -100,6 +100,20 @@ Heading Graph::locate(id_t wi, id_t ni, double bDeg) const
             bestIndex = i;
             bestDir = (j > i);
           }
+
+          // At endpoints, also test if we are leaving the way
+          if (bidirectional)
+          {
+            auto const qr = v.dot(-vec);
+
+            // Test against current best
+            if (qr > bestAngle)
+            {
+              bestAngle = qr;
+              bestIndex = i;
+              bestDir = (j < i);
+            }
+          }
         }
       }
     };
@@ -113,11 +127,11 @@ Heading Graph::locate(id_t wi, id_t ni, double bDeg) const
         // Test both directions (except at ends of the way)
         if (i > 0)
         {
-          test(i, i - 1);
+          test(i, i - 1, i + 1 == k);
         }
         if (i + 1 < k)
         {
-          test(i, i + 1);
+          test(i, i + 1, i == 0);
         }
       }
     }
