@@ -129,9 +129,9 @@ std::vector<Trip> buildTrips(Mover const& mover)
   }
 
   // Remove points that are "too close together"
+  constexpr auto threshold = 1e3; // about 30 m
   for (auto& t : trips)
   {
-    constexpr auto threshold = 1e3; // about 30 m
     while (t.waypoints.size() > 2)
     {
       // Find the pair of points that are closest together
@@ -180,10 +180,34 @@ std::vector<Trip> buildTrips(Mover const& mover)
     }
   }
 
-  // Remove duplicate waypoints from end
-  while (!trips.empty() && trips.back().waypoints.size() < 2)
+  // Remove trips that are "too short" or degenerate
+  for (auto i = trips.begin(); i != trips.end();)
   {
-    trips.erase(trips.rbegin().base());
+    auto remove = (i->waypoints.size() < 2);
+    if (i->waypoints.size() == 2)
+    {
+      auto const& w0 = i->waypoints.front().utmPoint;
+      auto const& w1 = i->waypoints.back().utmPoint;
+      auto const d = (w1 - w0).squaredNorm();
+      remove = (d < threshold);
+    }
+
+    if (remove)
+    {
+      if (i != trips.begin())
+      {
+        auto const next = (i + 1);
+        if (next != trips.end())
+        {
+          next->cooldown += i->cooldown;
+        }
+      }
+      i = trips.erase(i);
+    }
+    else
+    {
+      ++i;
+    }
   }
 
   return trips;
