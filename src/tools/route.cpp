@@ -371,12 +371,6 @@ int main(int argc, char** argv)
         auto edges = route(wp[0].llPoint, wp[1].llPoint,
                            engine, graph, segmentation);
 
-        // Extract stop
-        if (!edges.empty())
-        {
-          stops.push_back(Stop{edges.back(), leg.cooldown});
-        }
-
         // Add to accumulated list of edges for the route
         if (allEdges.empty())
         {
@@ -395,6 +389,12 @@ int main(int argc, char** argv)
             std::make_move_iterator(i),
             std::make_move_iterator(edges.end()));
         }
+      }
+
+      // Extract stop
+      if (!allEdges.empty())
+      {
+        stops.push_back(Stop{allEdges.back(), leg.cooldown});
       }
     }
 
@@ -428,8 +428,8 @@ int main(int argc, char** argv)
         {
           auto const& stop = stops[n];
           output << R"(    <stop lane=")" << stop.edge
-                 << R"(" duration=")" << stop.duration
-                 << R"("/>)" << std::endl;
+                 << R"(_0" duration=")" << stop.duration
+                 << R"(" parking="true"/>)" << std::endl;
         }
         output << R"(  </route>)" << std::endl;
       }
