@@ -60,7 +60,7 @@ struct Trip
 {
   double start;
   double cooldown;
-  std::vector<tb::location_t> waypoints;
+  std::vector<Waypoint> waypoints;
 };
 
 // ----------------------------------------------------------------------------
@@ -111,23 +111,23 @@ std::vector<Trip> buildTrips(Mover const& mover)
 
       // Add cooldown and start new leg
       trips.back().cooldown = wp[1].time - wp[0].time;
-      trips.push_back(Trip{wp[1].time, 0.0, {wp[1].llPoint}});
+      trips.push_back(Trip{wp[1].time, 0.0, {wp[1]}});
     }
     else
     {
       // Append second point to trip
       if (trips.empty())
       {
-        trips.push_back(Trip{wp[0].time, 0.0, {wp[0].llPoint}});
+        trips.push_back(Trip{wp[0].time, 0.0, {wp[0]}});
       }
-      trips.back().waypoints.push_back(wp[1].llPoint);
+      trips.back().waypoints.push_back(wp[1]);
     }
   }
 
   // Remove points that are "too close together"
   for (auto& t : trips)
   {
-    constexpr auto threshold = 1e4;
+    constexpr auto threshold = 1e3; // about 30 m
     while (t.waypoints.size() > 2)
     {
       // Find the pair of points that are closest together
@@ -135,8 +135,8 @@ std::vector<Trip> buildTrips(Mover const& mover)
       auto shortestDistance = std::numeric_limits<double>::infinity();
       for (auto const i : kvr::iota(t.waypoints.size() - 1))
       {
-        auto const& w0 = t.waypoints[i + 0];
-        auto const& w1 = t.waypoints[i + 1];
+        auto const& w0 = t.waypoints[i + 0].utmPoint;
+        auto const& w1 = t.waypoints[i + 1].utmPoint;
         auto const d = (w1 - w0).squaredNorm();
         if (d < shortestDistance)
         {
@@ -151,8 +151,8 @@ std::vector<Trip> buildTrips(Mover const& mover)
           }
           else
           {
-            auto const& wa = t.waypoints[i - 1];
-            auto const& wb = t.waypoints[i + 2];
+            auto const& wa = t.waypoints[i - 1].utmPoint;
+            auto const& wb = t.waypoints[i + 2].utmPoint;
             auto const da = (w1 - wa).squaredNorm();
             auto const db = (wb - w0).squaredNorm();
             shortestIndex = (da > db ? i + 1 : i);
@@ -340,7 +340,8 @@ int main(int argc, char** argv)
     {
       for (auto const& wp : leg.waypoints | kvr::sliding<2>)
       {
-        auto edges = route(wp[0], wp[1], engine, graph, segmentation);
+        auto edges = route(wp[0].llPoint, wp[1].llPoint,
+                           engine, graph, segmentation);
 
         // Extract stop
         if (!edges.empty())
