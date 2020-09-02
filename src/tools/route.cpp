@@ -109,19 +109,23 @@ std::vector<Trip> buildTrips(Mover const& mover)
         continue;
       }
 
-      // Add cooldown and start new leg
-      trips.back().cooldown = wp[1].time - wp[0].time;
-      trips.push_back(Trip{wp[1].time, 0.0, {wp[1]}});
-    }
-    else
-    {
-      // Append second point to trip
-      if (trips.empty())
+      // Ignore very short stops that are probably due to traffic
+      auto const cooldown = wp[1].time - wp[0].time;
+      if (cooldown > 30.0)
       {
-        trips.push_back(Trip{wp[0].time, 0.0, {wp[0]}});
+        // Add cooldown and start new leg
+        trips.back().cooldown = cooldown;
+        trips.push_back(Trip{wp[1].time, 0.0, {wp[1]}});
+        continue;
       }
-      trips.back().waypoints.push_back(wp[1]);
     }
+
+    // Append second point to trip
+    if (trips.empty())
+    {
+      trips.push_back(Trip{wp[0].time, 0.0, {wp[0]}});
+    }
+    trips.back().waypoints.push_back(wp[1]);
   }
 
   // Remove points that are "too close together"
