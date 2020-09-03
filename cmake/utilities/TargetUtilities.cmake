@@ -107,7 +107,20 @@ endfunction()
 
 # -----------------------------------------------------------------------------
 function(tb_add_executable NAME)
-  add_executable(${NAME} ${ARGN})
+  set(_multival_arguments
+    SOURCES
+    HEADERS
+    LINK_LIBRARIES
+    )
+  cmake_parse_arguments(
+    "" # prefix (empty)
+    "" # options (none)
+    "" # single-value arguments (none)
+    "${_multival_arguments}"
+    ${ARGN}
+    )
+
+  add_executable(${NAME} ${_SOURCES} ${_HEADERS})
   tb_copy_runtime(${NAME})
 
   target_include_directories(${NAME}
@@ -118,6 +131,17 @@ function(tb_add_executable NAME)
     FOLDER ${PROJECT_NAME}
     )
 
+  # Link to dependencies
+  target_link_libraries(${NAME}
+    PRIVATE ${_LINK_LIBRARIES}
+    )
+
+  # Install executable
+  install(TARGETS ${NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT Utilities
+    )
+
+  # Add sources to IDE source group
   tb_source_group(${ARGN})
 
   # Configure running executable out of MSVC
