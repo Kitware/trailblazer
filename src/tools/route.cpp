@@ -398,6 +398,10 @@ int main(int argc, char** argv)
       }
     }
 
+    // Remove duplicate edges
+    allEdges.erase(std::unique(allEdges.begin(), allEdges.end()),
+                   allEdges.end());
+
     // Write route and vehicle
     if (allEdges.size() > 1)
     {
