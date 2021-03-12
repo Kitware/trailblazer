@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(Trailblazer VERSION 0.0.3 LANGUAGES CXX)
+project(Trailblazer VERSION 0.0.3 LANGUAGES C CXX)
 
 # Subdirectory into which headers should be installed
 set(Trailblazer_INCLUDEDIR trailblazer)
@@ -49,7 +49,7 @@ include(TargetUtilities)
 include(cmake/config.cmake)
 include(cmake/dependencies.cmake)
 
-add_subdirectory(src)
+add_subdirectory(src/cpp)
 
 #------------------------------------------------------------------------------
 # Common and build tree exports
