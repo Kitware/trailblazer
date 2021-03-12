@@ -1,0 +1,5 @@
+# Ignore any compiled python files
+*.pyc
+
+/data/analysis
+/data/net_quantico/routes
