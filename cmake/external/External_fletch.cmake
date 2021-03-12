@@ -14,8 +14,14 @@ add_external_project_ex( fletch
       -Dfletch_ENABLE_Boost:BOOL=ON
       -Dfletch_ENABLE_Eigen:BOOL=ON
       -Dfletch_ENABLE_GDAL:BOOL=ON
+      -Dfletch_ENABLE_GEOS:BOOL=ON
+      -Dfletch_ENABLE_PNG:BOOL=ON
       -Dfletch_ENABLE_PROJ4:BOOL=ON
       -Dfletch_ENABLE_ZLib:BOOL=ON
+      -Dfletch_ENABLE_libgeotiff:BOOL=ON
+      -Dfletch_ENABLE_libjpeg-turbo:BOOL=ON
+      -Dfletch_ENABLE_libtiff:BOOL=ON
+      -Dfletch_ENABLE_openjpeg:BOOL=ON
   RELATIVE_INCLUDE_PATH ""
   DEPENDENCIES ""
   #VERBOSE
