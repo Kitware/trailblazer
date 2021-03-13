@@ -1,3 +1,6 @@
+# Distributed under the Apache License, Version 2.0.
+# See accompanying NOTICE file for details.
+
 import csv
 from itertools import repeat
 import os
@@ -11,7 +14,6 @@ from trailblazer.utils.kw_utils import read_kw18
 from trailblazer.traffic.road_mapping import RoadMapping
 from trailblazer.traffic.road_network import RoadNetwork
 from trailblazer.traffic.vital import TrackSet
-
 from trailblazer.feature import features
 
 def feature_input_from_files(

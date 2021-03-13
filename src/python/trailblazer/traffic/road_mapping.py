@@ -1,3 +1,6 @@
+# Distributed under the Apache License, Version 2.0.
+# See accompanying NOTICE file for details.
+
 from itertools import chain
 import os
 import pathlib
@@ -11,9 +14,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 from trailblazer.traffic.road_network import RoadNetwork
-from trailblazer.traffic.base_layer import BaseLayer
 from trailblazer.utils import kw_utils
-
 
 class RoadMapping(object):
     __slots__ = ['full_paths',

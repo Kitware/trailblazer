@@ -1,7 +1,8 @@
-from . import features
-from . import io
+# Distributed under the Apache License, Version 2.0.
+# See accompanying NOTICE file for details.
 
-
+from trailblazer.feature import features
+from trailblazer.feature import io
 
 def apply_parsers(functions, config):
     """Return a new dictionary with the same keys as config, but with the

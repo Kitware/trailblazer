@@ -1,3 +1,6 @@
+# Distributed under the Apache License, Version 2.0.
+# See accompanying NOTICE file for details.
+
 import string
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +13,6 @@ from math import sqrt
 
 from trailblazer.utils import coordinate_converter as cc
 from trailblazer.traffic.base_layer import BaseLayer
-
 
 class RoadNetwork( object ):
     """Encode a road network as a graph.

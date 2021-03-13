@@ -1,9 +1,12 @@
+# Distributed under the Apache License, Version 2.0.
+# See accompanying NOTICE file for details.
+
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import ot.plot
 from sklearn.preprocessing import StandardScaler
-import os
 
 def compare_features(feature_files):
 

@@ -1,3 +1,6 @@
+# Distributed under the Apache License, Version 2.0.
+# See accompanying NOTICE file for details.
+
 import cv2
 import numpy as np
 from osgeo import osr, gdal

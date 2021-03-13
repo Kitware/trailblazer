@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+# Distributed under the Apache License, Version 2.0.
+# See accompanying NOTICE file for details.
 
 import os
 import argparse
-# Custom imports from sumo
+
 import randomTrips  # noqa
 import sumolib
 from trailblazer.utils.path_utils import fixup_paths

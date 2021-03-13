@@ -1,8 +1,7 @@
-/* This file is part of Trailblazer, and is distributed under the OSI-approved
- * BSD 3-Clause License. See top-level LICENSE file or
- * https://github.com/Kitware/trailblazer/blob/master/LICENSE for details. */
+/* Distributed under the Apache License, Version 2.0.
+   See accompanying NOTICE file for details.*/
 
-#include "graph.h"
+#include "tbutil/graph.h"
 
 #include <vital/types/geodesy.h>
 

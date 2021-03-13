@@ -1,3 +1,6 @@
+# Distributed under the Apache License, Version 2.0.
+# See accompanying NOTICE file for details.
+
 import numpy as np
 from math import floor, ceil
 from trailblazer.utils import coordinate_converter as cc

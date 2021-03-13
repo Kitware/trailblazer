@@ -1,11 +1,9 @@
-/* This file is part of Trailblazer, and is distributed under the OSI-approved
- * BSD 3-Clause License. See top-level LICENSE file or
- * https://github.com/Kitware/trailblazer/blob/master/LICENSE for details. */
+/* Distributed under the Apache License, Version 2.0.
+   See accompanying NOTICE file for details.*/
 
-#include "util.h"
+#include "tbutil/util.h"
 
 #include <vital/plugin_loader/plugin_manager.h>
-
 #include <vital/math_constants.h>
 
 #include <limits>

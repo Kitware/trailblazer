@@ -10,6 +10,9 @@ from trailblazer.traffic.base_layer import BaseLayer
 from trailblazer.traffic.road_network import RoadNetwork
 from trailblazer.utils import pixel_utils as px
 from trailblazer.utils.path_utils import setup_paths
+# Distributed under the Apache License, Version 2.0.
+# See accompanying NOTICE file for details.
+
 from trailblazer.utils import kw_utils
 
 # Class to generate a random traffic set using sumo
