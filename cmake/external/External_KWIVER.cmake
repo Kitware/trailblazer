@@ -4,10 +4,8 @@
 include(AddExternalProject)
 define_external_dirs_ex( KWIVER )
 add_external_project_ex( KWIVER
-  GIT_REPOSITORY https://github.com/aaron-bray/kwiver.git
-  GIT_TAG track_cxx_fix
-  #URL "https://github.com/Kitware/kwiver/archive/v1.5.0.zip"
-  #URL_HASH MD5=b239799cb98a415a34a90047247226e5
+  GIT_REPOSITORY https://github.com/Kitware/kwiver.git
+  GIT_TAG master
   CMAKE_CACHE_ARGS
       -Dfletch_DIR:PATH=${fletch_DIR}
       -DKWIVER_ENABLE_ARROWS:BOOL=ON

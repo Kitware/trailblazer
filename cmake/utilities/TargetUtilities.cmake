@@ -68,8 +68,8 @@ function(tb_add_library NAME)
   # Set interface include directories
   target_include_directories(${NAME}
     PUBLIC
-      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
-      $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
+      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/cpp>
+      $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src/cpp>
       $<INSTALL_INTERFACE:${install_includedir}>
     )
 
