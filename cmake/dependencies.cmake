@@ -19,4 +19,4 @@ set_property(TARGET kwiver::vital APPEND PROPERTY
 # Valhalla (requires Boost to use)
 find_package(Boost 1.51 REQUIRED)
 find_package(valhalla REQUIRED)
-#find_package(SUMO REQUIRED)
+find_package(SUMO REQUIRED)

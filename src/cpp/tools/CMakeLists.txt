@@ -16,6 +16,6 @@ tb_add_executable(tbsim
   SOURCES
     simulate.cpp
   LINK_LIBRARIES
-    #SUMO::libsumocpp
+    SUMO::libsumocpp
     kwiver::vital
   )

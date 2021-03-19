@@ -4,8 +4,10 @@
 include(AddExternalProject)
 define_external_dirs_ex( SUMO )
 add_external_project_ex( SUMO
-  GIT_REPOSITORY https://github.com/eclipse/sumo.git
-  GIT_TAG v1_8_0
+  GIT_REPOSITORY https://github.com/aaron-bray/sumo.git
+  GIT_TAG "CMakeExport#4485"
+  #GIT_REPOSITORY https://github.com/eclipse/sumo.git
+  #GIT_TAG master
   CMAKE_CACHE_ARGS
       -DEigen3_DIR:PATH=${Eigen3_DIR}
       -DXercesC_DIR:PATH=${XercesC_DIR}
